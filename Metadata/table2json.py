@@ -628,7 +628,7 @@ cur = conn.cursor()
 
 
 # run function
-template='/home/carva014/Work/Code/FAO/glosis-db/Metadata/template.json'
+template='/home/carva014/Work/Code/FAO/GloSIS-private/Metadata/template.json'
 output='/home/carva014/Downloads/FAO/SIS/PH/Processed'
 bake_json('GSAS', template, output)
 bake_json('GSOC', template, output)

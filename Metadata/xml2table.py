@@ -415,11 +415,11 @@ conn = psycopg2.connect("host='localhost' port='5432' dbname='iso19139' user='gl
 cur = conn.cursor()
 
 # reset db schema
-sql_file = open('/home/carva014/Work/Code/FAO/glosis-db/Metadata/db_model.sql','r')
+sql_file = open('/home/carva014/Work/Code/FAO/GloSIS-private/Metadata/db_model.sql','r')
 cur.execute(sql_file.read())
 
 # empty tables
-# sql_file = open('/home/carva014/Work/Code/FAO/glosis-db/Metadata/db_truncate.sql','r')
+# sql_file = open('/home/carva014/Work/Code/FAO/GloSIS-private/Metadata/db_truncate.sql','r')
 # cur.execute(sql_file.read())
 
 # run function
