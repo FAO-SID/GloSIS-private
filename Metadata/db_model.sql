@@ -96,14 +96,13 @@ BEGIN
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
+ALTER FUNCTION metadata.class() OWNER TO glosis;
 
 
 CREATE OR REPLACE FUNCTION metadata.map()
-RETURNS trigger
-LANGUAGE 'plpgsql'
-COST 100
-VOLATILE NOT LEAKPROOF
-AS $BODY$
+ RETURNS trigger
+ LANGUAGE plpgsql
+AS $function$
 DECLARE
   rec_property RECORD;
   rec_layer RECORD;
@@ -144,23 +143,27 @@ UPDATE metadata.layer l SET map = 'MAP
   END # PROJECTION
   WEB
       METADATA
-          "ows_title" "'||rec_property.mapset_id||' web-service" 
+          "ows_title" "'||rec_layer.layer_id||' web-service" 
           "ows_enable_request" "*" 
           "ows_srs" "EPSG:'||rec_layer.reference_system_identifier_code||' EPSG:4326 EPSG:3857"
-          "ows_getfeatureinfo_formatlist" "text/plain,text/html,application/json,geojson,application/vnd.ogc.gml,gml"
-		  "wms_feature_info_mime_type" "text/plain,text/html"
+          "wms_getfeatureinfo_formatlist" "text/plain,text/html,application/json,geojson,application/vnd.ogc.gml,gml"
+		  "wms_feature_info_mime_type" "application/json"
       END # METADATA
   END # WEB
   LAYER
-      TEMPLATE "getfeatureinfo_template.tmpl"
-      NAME "'||rec_property.mapset_id||'"
+      TEMPLATE "getfeatureinfo.tmpl"
+      NAME "'||rec_layer.layer_id||'"
       DATA "'||rec_layer.layer_id||'.'||rec_layer.file_extension||'"
       TYPE RASTER
       STATUS ON
+      METADATA
+        "wms_include_items" "all"
+        "gml_include_items" "all"
+      END # METADATA
       CLASS
         NAME "'||rec_layer.layer_id||'"
         STYLE
-            COLORRANGE "'||rec_property.start_color||'" "'||rec_property.end_color||'"  # Start and end colors (blue to brown)
+            COLORRANGE "'||rec_property.start_color||'" "'||rec_property.end_color||'"
             DATARANGE '||rec_layer.stats_minimum||' '||rec_layer.stats_maximum||'
             RANGEITEM "pixel"
           END # STYLE
@@ -171,7 +174,7 @@ WHERE l.mapset_id = NEW.mapset_id;
 
   RETURN NEW;
 END
-$BODY$;
+$function$;
 ALTER FUNCTION metadata.map() OWNER TO glosis;
 
 
