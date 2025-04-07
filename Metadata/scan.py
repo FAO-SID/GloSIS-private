@@ -230,12 +230,32 @@ sql = """INSERT INTO metadata.url (mapset_id, protocol, url, url_name)
         LEFT JOIN metadata.layer l ON l.mapset_id = m.mapset_id
         WHERE l.mapset_id IN (SELECT mapset_id FROM metadata.layer GROUP BY mapset_id HAVING count(*)>1)
             UNION
-        SELECT mapset_id, 'OGC:WMTS', 'https://data.apps.fao.org/map/wmts/wmts?service=WMTS&amp;request=GetCapabilities&amp;version=1.0.0&amp;workspace=GLOSIS', 'Web Map Tile Service'
+        SELECT mapset_id, 'OGC:WMTS', 'https://data.apps.fao.org/map/wmts/wmts?service=WMTS&amp;request=GetCapabilities&amp;version=1.0.0&amp;workspace=GLOSIS', 'Web Map Tile Service (FAO)'
         FROM metadata.metadata_manual
+            UNION
+        SELECT mapset_id, 'OGC:WMTS', 'http://localhost:8082/?map=/etc/mapserver/'||layer_id||'.map&amp;SERVICE=WMS&amp;REQUEST=GetCapabilities', 'Web Map Tile Service (self hosted)'
+        FROM metadata.layer
         ON CONFLICT (mapset_id, protocol, url) DO NOTHING"""
 cur.execute(sql)
+
+sql = """UPDATE metadata.mapset m
+        SET md_browse_graphic = l.md_browse_graphic
+        FROM (
+            SELECT mapset_id, 
+                   'http://localhost:8082/?map=/etc/mapserver/'||layer_id||'.map&amp;SERVICE=WMS&amp;VERSION=1.3.0&amp;REQUEST=GetMap&amp;BBOX=4.584249999999999936%2C116.5172270000000054%2C21.22970700000000122%2C126.8480870000000067&amp;CRS=EPSG%3A4326&amp;WIDTH=762&amp;HEIGHT=1228&amp;LAYERS='||layer_id||'&amp;STYLES=&amp;FORMAT=image%2Fpng&amp;DPI=96&amp;MAP_RESOLUTION=96&amp;FORMAT_OPTIONS=dpi%3A96&amp;TRANSPARENT=TRUE' AS md_browse_graphic
+            FROM metadata.layer
+        ) l
+        WHERE m.mapset_id = l.mapset_id
+        """
+cur.execute(sql)
+
 
 # close db connection
 conn.commit()
 cur.close()
 conn.close()
+
+
+
+
+
