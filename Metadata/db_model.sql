@@ -122,14 +122,14 @@ SELECT
 	l.stats_maximum
 INTO rec_layer
 FROM metadata.layer l 
-WHERE l.mapset_id = NEW.mapset_id;
+WHERE l.layer_id = NEW.layer_id;
 
 SELECT m.mapset_id,
   p.start_color,
   p.end_color
 INTO rec_property
 FROM metadata.mapset m, metadata.property p
-WHERE m.property_id = split_part(NEW.mapset_id,'-',3);
+WHERE m.property_id = split_part(NEW.layer_id,'-',3);
 
 UPDATE metadata.layer l SET map = 'MAP
   NAME "'||rec_layer.layer_id||'"
@@ -147,7 +147,7 @@ UPDATE metadata.layer l SET map = 'MAP
           "ows_enable_request" "*" 
           "ows_srs" "EPSG:'||rec_layer.reference_system_identifier_code||' EPSG:4326 EPSG:3857"
           "wms_getfeatureinfo_formatlist" "text/plain,text/html,application/json,geojson,application/vnd.ogc.gml,gml"
-		  "wms_feature_info_mime_type" "application/json"
+          "wms_feature_info_mime_type" "application/json"
       END # METADATA
   END # WEB
   LAYER
@@ -170,7 +170,7 @@ UPDATE metadata.layer l SET map = 'MAP
       END # CLASS
   END # LAYER
 END # MAP'
-WHERE l.mapset_id = NEW.mapset_id;
+WHERE l.layer_id = NEW.layer_id;
 
   RETURN NEW;
 END
