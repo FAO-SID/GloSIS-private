@@ -230,10 +230,10 @@ sql = """INSERT INTO metadata.url (mapset_id, protocol, url, url_name)
         LEFT JOIN metadata.layer l ON l.mapset_id = m.mapset_id
         WHERE l.mapset_id IN (SELECT mapset_id FROM metadata.layer GROUP BY mapset_id HAVING count(*)>1)
             UNION
-        SELECT mapset_id, 'OGC:WMTS', 'https://data.apps.fao.org/map/wmts/wmts?service=WMTS&amp;request=GetCapabilities&amp;version=1.0.0&amp;workspace=GLOSIS', 'Web Map Tile Service (FAO)'
+        SELECT mapset_id, 'OGC:WMTS', 'https://data.apps.fao.org/map/wmts/wmts?service=WMTS&amp;request=GetCapabilities&amp;version=1.0.0&amp;workspace=GLOSIS', 'WMTS (FAO)'
         FROM metadata.metadata_manual
             UNION
-        SELECT mapset_id, 'OGC:WMTS', 'http://localhost:8082/?map=/etc/mapserver/'||layer_id||'.map&amp;SERVICE=WMS&amp;REQUEST=GetCapabilities', 'Web Map Tile Service (self hosted)'
+        SELECT mapset_id, 'OGC:WMTS', 'http://localhost:8082/?map=/etc/mapserver/'||layer_id||'.map&amp;SERVICE=WMS&amp;REQUEST=GetCapabilities', 'WMTS (Philippines SIS)'
         FROM metadata.layer
         ON CONFLICT (mapset_id, protocol, url) DO NOTHING"""
 cur.execute(sql)
