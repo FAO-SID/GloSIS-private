@@ -62,7 +62,7 @@ conn = psycopg2.connect("host='localhost' port='5432' dbname='iso19139' user='gl
 cur = conn.cursor()
 
 # run function
-output='/home/carva014/Downloads/FAO/SIS/PH/Processed'
+output='/home/carva014/Work/Code/FAO/GloSIS/glosis-datacube/PH/output'
 export_style(output, 'GSOC')
 export_style(output, 'GSNM')
 export_style(output, 'GSAS')

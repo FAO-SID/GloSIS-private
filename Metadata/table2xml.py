@@ -566,7 +566,7 @@ cur = conn.cursor()
 
 # run function
 template='/home/carva014/Work/Code/FAO/GloSIS-private/Metadata/template.xml'
-output='/home/carva014/Work/Code/FAO/GloSIS-private/Metadata/output'
+output='/home/carva014/Work/Code/FAO/GloSIS/glosis-datacube/PH/output'
 bake_xml('GSAS', template, output)
 bake_xml('GSOC', template, output)
 bake_xml('GSNM', template, output)

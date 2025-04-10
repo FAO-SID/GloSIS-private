@@ -29,7 +29,7 @@ psql -h "$DB_HOST" -p "$DB_PORT" -d "$DB_NAME" -U "$DB_USER" -t -A -F"|" -c \
     ORDER BY l.layer_id;" | \
 while IFS="|" read -r MAPSET FILE_NAME; do
     echo $FILE_NAME
-    gsutil -mq cp /home/carva014/Downloads/FAO/SIS/PH/Processed/${FILE_NAME}   gs://fao-gismgr-glosis-upload/MAP/${MAPSET}/
+    gsutil -mq cp /home/carva014/Work/Code/FAO/GloSIS/glosis-datacube/PH/output/${FILE_NAME}   gs://fao-gismgr-glosis-upload/MAP/${MAPSET}/
 done
 
 
@@ -43,5 +43,5 @@ psql -h "$DB_HOST" -p "$DB_PORT" -d "$DB_NAME" -U "$DB_USER" -t -A -F"|" -c \
     ORDER BY l.layer_id;" | \
 while IFS="|" read -r MAPSET FILE_NAME; do
     echo $FILE_NAME
-    gsutil -mq cp /home/carva014/Downloads/FAO/SIS/PH/Processed/${FILE_NAME}   gs://fao-gismgr-glosis-upload/MAPSET/${MAPSET}/
+    gsutil -mq cp /home/carva014/Work/Code/FAO/GloSIS/glosis-datacube/PH/output/${FILE_NAME}   gs://fao-gismgr-glosis-upload/MAPSET/${MAPSET}/
 done
