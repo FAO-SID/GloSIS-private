@@ -17,3 +17,5 @@ conda activate db
 python /home/carva014/Work/Code/FAO/GloSIS-private/Metadata/scan.py
 python /home/carva014/Work/Code/FAO/GloSIS-private/Metadata/table2xml.py
 python /home/carva014/Work/Code/FAO/GloSIS-private/Metadata/export.py
+pg_dump -h localhost -p 5432 -U carva014 -d iso19139 -Fc -v -f /home/carva014/Work/Code/FAO/GloSIS-private/Metadata/backups/iso19139_backup_latest.dump
+
