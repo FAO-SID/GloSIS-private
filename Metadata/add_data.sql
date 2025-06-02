@@ -1,4 +1,6 @@
 INSERT INTO metadata.project (country_id, project_id, project_name) SELECT 'BT', project_id, project_name FROM metadata.project WHERE country_id = 'PH';
+INSERT INTO metadata.project (country_id, project_id, project_name) VALUES ('BT', 'OTHER', 'Other maps');
+
 
 INSERT INTO metadata.property (property_id, name, unit_id) VALUES
 ('CORGASRBAUU', 'Organic Carbon Sequestration Potential - ASR Business As Usual (BAU) uncertainty', 'tonnes C ha-1 yr-1'),
@@ -19,6 +21,7 @@ INSERT INTO metadata.property (property_id, name, unit_id) VALUES
 ('CORGSD', 'Carbon (C) - organic standard deviation', '%'),
 ('PHAQ', 'pH - Hydrogen potential in water', 'pH'),
 ('PHAQSD', 'pH - Hydrogen potential in water standard deviation', 'pH'),
+('SALTU', 'Salinification uncertainty', 'class'),
 ('SANDSD', 'Sand texture fraction standard deviation', '%'),
 ('SILTSD', 'Silt texture fraction standard deviation', '%'),
 ('NTOTSD', 'Nitrogen (N) - total standard deviation', '%'),
@@ -30,6 +33,15 @@ INSERT INTO metadata.property (property_id, name, unit_id) VALUES
 ('BSEXCSD', 'Exchangeable bases standard deviation', 'cmol(c)/kg'),
 ('ECXSD', 'Electrical conductivity standard deviation', 'dS m-1'),
 ('ECXU', 'Electrical conductivity uncertainty', 'dS m-1'),
+('ECXSE', 'Electrical conductivity spatial estimate', 'dS m-1'),
+('ECXTE', 'Electrical conductivity total estimate', 'dS m-1'),
 ('NAEXCU', 'Sodium (Na+) - exchangeable uncertainty', '%'),
+('NAEXCPT', 'Sodium (Na+) - exchangeable Percent transformed', '%'),
 ('PHXSD', 'pH - Hydrogen potential standard deviation', 'pH'),
-('PHXU', 'pH - Hydrogen potential uncertainty', 'pH');
+('PHXU', 'pH - Hydrogen potential uncertainty', 'pH'),
+('PHXT', 'pH - Hydrogen potential transformed', 'pH');
+
+INSERT INTO metadata.property (property_id, name, unit_id, property_type, num_intervals) VALUES
+('CLAWRB', 'World Reference Base', 'class', 'categorical', 7);
+
+
