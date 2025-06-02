@@ -39,7 +39,9 @@ INSERT INTO metadata.property (property_id, name, unit_id) VALUES
 ('NAEXCPT', 'Sodium (Na+) - exchangeable Percent transformed', '%'),
 ('PHXSD', 'pH - Hydrogen potential standard deviation', 'pH'),
 ('PHXU', 'pH - Hydrogen potential uncertainty', 'pH'),
-('PHXT', 'pH - Hydrogen potential transformed', 'pH');
+('PHXT', 'pH - Hydrogen potential transformed', 'pH'),
+('KEXCSD', 'Potassium (K+) - exchangeable standard deviation', 'cmol(c)/kg');
+
 
 INSERT INTO metadata.property (property_id, name, unit_id, property_type, num_intervals) VALUES
 ('CLAWRB', 'World Reference Base', 'class', 'categorical', 7);
