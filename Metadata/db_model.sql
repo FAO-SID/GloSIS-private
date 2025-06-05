@@ -74,9 +74,9 @@ BEGIN
 
         -- Insert the class interval and color into the categories table
         INSERT INTO metadata.class (property_id, value, code, "label", color, opacity, publish)
-        VALUES (NEW.property_id, current_min::numeric(10,2), 
-              current_min::numeric(10,2) || ' - ' || current_max::numeric(10,2), 
-              current_min::numeric(10,2) || ' - ' || current_max::numeric(10,2), 
+        VALUES (NEW.property_id, current_min::numeric(20,2), 
+              current_min::numeric(20,2) || ' - ' || current_max::numeric(20,2), 
+              current_min::numeric(20,2) || ' - ' || current_max::numeric(20,2), 
               color, 1, 't')
         ON CONFLICT (property_id, value)
         DO UPDATE SET

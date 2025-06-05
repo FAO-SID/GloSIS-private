@@ -143,119 +143,119 @@ def spatial_data_scan(rootdir):
 
             # commit changes in the DB per file
             conn.commit()
+    
+    # remove -123456789 values
+    sql = """UPDATE metadata.layer SET compression = NULL WHERE compression='None';
+         UPDATE metadata.layer SET stats_mean = NULL WHERE stats_mean=-123456789;
+         UPDATE metadata.layer SET stats_std_dev = NULL WHERE stats_std_dev=-123456789;
+         UPDATE metadata.layer SET no_data_value = NULL WHERE no_data_value=-123456789;"""
+    cur.execute(sql)
+
+    # update property min and max
+    sql = """UPDATE metadata.property p
+        SET min = t.min,
+            max = t.max
+        FROM (SELECT split_part(mapset_id,'-',3) property_id, min(stats_minimum) min, max(stats_maximum) max FROM metadata.layer GROUP BY split_part(mapset_id,'-',3)) t
+        WHERE p.property_id = t.property_id"""
+    cur.execute(sql)
+
 
 # open db connection
 conn = psycopg2.connect("host='localhost' port='5432' dbname='iso19139' user='glosis'")
 cur = conn.cursor()
 
 # run function
-rootdir = '/home/carva014/Work/Code/FAO/GloSIS/glosis-datacube/PH/output'
-metadata_manual = '/home/carva014/Downloads/FAO/SIS/PH/metadata.xlsx - metadata.tsv'
+spatial_data_scan('/home/carva014/Work/Code/FAO/GloSIS/glosis-datacube/BT/output')
 
-spatial_data_scan(rootdir)
 
-sql = """UPDATE metadata.layer SET compression = NULL WHERE compression='None';
-         UPDATE metadata.layer SET stats_mean = NULL WHERE stats_mean=-123456789;
-         UPDATE metadata.layer SET stats_std_dev = NULL WHERE stats_std_dev=-123456789;
-         UPDATE metadata.layer SET no_data_value = NULL WHERE no_data_value=-123456789;"""
-cur.execute(sql)
+# Manual metadata
+# metadata_manual = '/home/carva014/Downloads/FAO/SIS/BT/metadata.xlsx - metadata.tsv'
 
-sql = """UPDATE metadata.property p
-        SET min = t.min,
-            max = t.max
-        FROM (SELECT split_part(mapset_id,'-',3) property_id, min(stats_minimum) min, max(stats_maximum) max FROM metadata.layer GROUP BY split_part(mapset_id,'-',3)) t
-        WHERE p.property_id = t.property_id"""
-cur.execute(sql)
 
-# update table mapset with manual metadata
-sql = """UPDATE metadata.mapset mp
-        SET title = m.title,
-            unit_id = m.unit_id,
-            creation_date = m.creation_date::date,
-            revision_date = m.revision_date::date,
-            publication_date = m.publication_date::date,
-            abstract = m.abstract,
-            keyword_theme = m.keyword_theme,
-            keyword_place = m.keyword_place,
-            access_constraints = m.access_constraints,
-            use_constraints = m.use_constraints,
-            other_constraints = m.other_constraints,
-            time_period_begin = m.time_period_begin::date,
-            time_period_end = m.time_period_end::date,
-            citation_md_identifier_code = m.citation_md_identifier_code,
-            lineage_statement = m.lineage_statement
-        FROM metadata.metadata_manual m
-        WHERE mp.mapset_id = m.mapset_id"""
-cur.execute(sql)
+# # update table mapset with manual metadata
+# sql = """UPDATE metadata.mapset mp
+#         SET title = m.title,
+#             unit_id = m.unit_id,
+#             creation_date = m.creation_date::date,
+#             revision_date = m.revision_date::date,
+#             publication_date = m.publication_date::date,
+#             abstract = m.abstract,
+#             keyword_theme = m.keyword_theme,
+#             keyword_place = m.keyword_place,
+#             access_constraints = m.access_constraints,
+#             use_constraints = m.use_constraints,
+#             other_constraints = m.other_constraints,
+#             time_period_begin = m.time_period_begin::date,
+#             time_period_end = m.time_period_end::date,
+#             citation_md_identifier_code = m.citation_md_identifier_code,
+#             lineage_statement = m.lineage_statement
+#         FROM metadata.metadata_manual m
+#         WHERE mp.mapset_id = m.mapset_id"""
+# cur.execute(sql)
 
-# insert organisation
-sql = """INSERT INTO metadata.organisation (organisation_id, url, email, country, city, postal_code, delivery_point)
-        SELECT DISTINCT organisation_id, url, organisation_email, country, city, postal_code, delivery_point
-        FROM metadata.metadata_manual
-        ON CONFLICT (organisation_id) DO NOTHING"""
-cur.execute(sql)
+# # insert organisation
+# sql = """INSERT INTO metadata.organisation (organisation_id, url, email, country, city, postal_code, delivery_point)
+#         SELECT DISTINCT organisation_id, url, organisation_email, country, city, postal_code, delivery_point
+#         FROM metadata.metadata_manual
+#         ON CONFLICT (organisation_id) DO NOTHING"""
+# cur.execute(sql)
 
-# insert individual
-sql = """INSERT INTO metadata.individual (individual_id, email)
-        SELECT DISTINCT individual_id, email
-        FROM metadata.metadata_manual
-        ON CONFLICT (individual_id) DO NOTHING"""
-cur.execute(sql)
+# # insert individual
+# sql = """INSERT INTO metadata.individual (individual_id, email)
+#         SELECT DISTINCT individual_id, email
+#         FROM metadata.metadata_manual
+#         ON CONFLICT (individual_id) DO NOTHING"""
+# cur.execute(sql)
 
-# insert ver_x_org_x_ind
-sql = """INSERT INTO metadata.ver_x_org_x_ind (mapset_id, tag, "role", "position", organisation_id, individual_id)
-        SELECT DISTINCT l.mapset_id, 'contact', 'resourceProvider', m.position, m.organisation_id, m.individual_id
-        FROM metadata.layer l
-        LEFT JOIN metadata.metadata_manual m ON  m.mapset_id = l.mapset_id
-            UNION
-        SELECT DISTINCT l.mapset_id, 'pointOfContact', 'author', m.position, m.organisation_id, m.individual_id
-        FROM metadata.layer l
-        LEFT JOIN metadata.metadata_manual m ON  m.mapset_id = l.mapset_id
-        ON CONFLICT (mapset_id, tag, role, "position", organisation_id, individual_id) DO NOTHING"""
-cur.execute(sql)
+# # insert ver_x_org_x_ind
+# sql = """INSERT INTO metadata.ver_x_org_x_ind (mapset_id, tag, "role", "position", organisation_id, individual_id)
+#         SELECT DISTINCT l.mapset_id, 'contact', 'resourceProvider', m.position, m.organisation_id, m.individual_id
+#         FROM metadata.layer l
+#         LEFT JOIN metadata.metadata_manual m ON  m.mapset_id = l.mapset_id
+#             UNION
+#         SELECT DISTINCT l.mapset_id, 'pointOfContact', 'author', m.position, m.organisation_id, m.individual_id
+#         FROM metadata.layer l
+#         LEFT JOIN metadata.metadata_manual m ON  m.mapset_id = l.mapset_id
+#         ON CONFLICT (mapset_id, tag, role, "position", organisation_id, individual_id) DO NOTHING"""
+# cur.execute(sql)
 
-# insert url
-sql = """INSERT INTO metadata.url (mapset_id, protocol, url, url_name)
-        SELECT DISTINCT mapset_id, 'WWW:LINK-1.0-http--link', url_paper, 'Scientific paper' FROM metadata.metadata_manual WHERE url_paper IS NOT NULL
-            UNION
-        SELECT DISTINCT mapset_id, 'WWW:LINK-1.0-http--link', url_project, 'Project webpage' FROM metadata.metadata_manual WHERE url_project IS NOT NULL
-            UNION
-        SELECT m.mapset_id, 'WWW:LINK-1.0-http--link', 'https://storage.googleapis.com/fao-gismgr-glosis-data/DATA/GLOSIS/MAP/'||'GLOSIS.'||l.mapset_id||'.'||l.file_extension , 'Download '||l.dimension_des 
-        FROM metadata.metadata_manual m
-        LEFT JOIN metadata.layer l ON l.mapset_id = m.mapset_id
-        WHERE l.mapset_id IN (SELECT mapset_id FROM metadata.layer GROUP BY mapset_id HAVING count(*)=1)
-                UNION
-        SELECT m.mapset_id, 'WWW:LINK-1.0-http--link', 'https://storage.googleapis.com/fao-gismgr-glosis-data/DATA/GLOSIS/MAPSET/'||l.mapset_id||'/GLOSIS.'||l.mapset_id||'.D-'||l.dimension_des||'.'||l.file_extension , 'Download '||l.dimension_des 
-        FROM metadata.metadata_manual m
-        LEFT JOIN metadata.layer l ON l.mapset_id = m.mapset_id
-        WHERE l.mapset_id IN (SELECT mapset_id FROM metadata.layer GROUP BY mapset_id HAVING count(*)>1)
-            UNION
-        SELECT mapset_id, 'OGC:WMTS', 'https://data.apps.fao.org/map/wmts/wmts?service=WMTS&amp;request=GetCapabilities&amp;version=1.0.0&amp;workspace=GLOSIS', 'WMTS (FAO)'
-        FROM metadata.metadata_manual
-            UNION
-        SELECT mapset_id, 'OGC:WMTS', 'http://localhost:8082/?map=/etc/mapserver/'||layer_id||'.map&amp;SERVICE=WMS&amp;REQUEST=GetCapabilities', 'WMTS (Philippines SIS)'
-        FROM metadata.layer
-        ON CONFLICT (mapset_id, protocol, url) DO NOTHING"""
-cur.execute(sql)
+# # insert url
+# sql = """INSERT INTO metadata.url (mapset_id, protocol, url, url_name)
+#         SELECT DISTINCT mapset_id, 'WWW:LINK-1.0-http--link', url_paper, 'Scientific paper' FROM metadata.metadata_manual WHERE url_paper IS NOT NULL
+#             UNION
+#         SELECT DISTINCT mapset_id, 'WWW:LINK-1.0-http--link', url_project, 'Project webpage' FROM metadata.metadata_manual WHERE url_project IS NOT NULL
+#             UNION
+#         SELECT m.mapset_id, 'WWW:LINK-1.0-http--link', 'https://storage.googleapis.com/fao-gismgr-glosis-data/DATA/GLOSIS/MAP/'||'GLOSIS.'||l.mapset_id||'.'||l.file_extension , 'Download '||l.dimension_des 
+#         FROM metadata.metadata_manual m
+#         LEFT JOIN metadata.layer l ON l.mapset_id = m.mapset_id
+#         WHERE l.mapset_id IN (SELECT mapset_id FROM metadata.layer GROUP BY mapset_id HAVING count(*)=1)
+#                 UNION
+#         SELECT m.mapset_id, 'WWW:LINK-1.0-http--link', 'https://storage.googleapis.com/fao-gismgr-glosis-data/DATA/GLOSIS/MAPSET/'||l.mapset_id||'/GLOSIS.'||l.mapset_id||'.D-'||l.dimension_des||'.'||l.file_extension , 'Download '||l.dimension_des 
+#         FROM metadata.metadata_manual m
+#         LEFT JOIN metadata.layer l ON l.mapset_id = m.mapset_id
+#         WHERE l.mapset_id IN (SELECT mapset_id FROM metadata.layer GROUP BY mapset_id HAVING count(*)>1)
+#             UNION
+#         SELECT mapset_id, 'OGC:WMTS', 'https://data.apps.fao.org/map/wmts/wmts?service=WMTS&amp;request=GetCapabilities&amp;version=1.0.0&amp;workspace=GLOSIS', 'WMTS (FAO)'
+#         FROM metadata.metadata_manual
+#             UNION
+#         SELECT mapset_id, 'OGC:WMTS', 'http://localhost:8082/?map=/etc/mapserver/'||layer_id||'.map&amp;SERVICE=WMS&amp;REQUEST=GetCapabilities', 'WMTS (Philippines SIS)'
+#         FROM metadata.layer
+#         ON CONFLICT (mapset_id, protocol, url) DO NOTHING"""
+# cur.execute(sql)
 
-sql = """UPDATE metadata.mapset m
-        SET md_browse_graphic = l.md_browse_graphic
-        FROM (
-            SELECT mapset_id, 
-                   'http://localhost:8082/?map=/etc/mapserver/'||layer_id||'.map&amp;SERVICE=WMS&amp;VERSION=1.3.0&amp;REQUEST=GetMap&amp;BBOX=4.584249999999999936%2C116.5172270000000054%2C21.22970700000000122%2C126.8480870000000067&amp;CRS=EPSG%3A4326&amp;WIDTH=762&amp;HEIGHT=1228&amp;LAYERS='||layer_id||'&amp;STYLES=&amp;FORMAT=image%2Fpng&amp;DPI=96&amp;MAP_RESOLUTION=96&amp;FORMAT_OPTIONS=dpi%3A96&amp;TRANSPARENT=TRUE' AS md_browse_graphic
-            FROM metadata.layer
-        ) l
-        WHERE m.mapset_id = l.mapset_id
-        """
-cur.execute(sql)
+# sql = """UPDATE metadata.mapset m
+#         SET md_browse_graphic = l.md_browse_graphic
+#         FROM (
+#             SELECT mapset_id, 
+#                    'http://localhost:8082/?map=/etc/mapserver/'||layer_id||'.map&amp;SERVICE=WMS&amp;VERSION=1.3.0&amp;REQUEST=GetMap&amp;BBOX=4.584249999999999936%2C116.5172270000000054%2C21.22970700000000122%2C126.8480870000000067&amp;CRS=EPSG%3A4326&amp;WIDTH=762&amp;HEIGHT=1228&amp;LAYERS='||layer_id||'&amp;STYLES=&amp;FORMAT=image%2Fpng&amp;DPI=96&amp;MAP_RESOLUTION=96&amp;FORMAT_OPTIONS=dpi%3A96&amp;TRANSPARENT=TRUE' AS md_browse_graphic
+#             FROM metadata.layer
+#         ) l
+#         WHERE m.mapset_id = l.mapset_id
+#         """
+# cur.execute(sql)
 
 
 # close db connection
 conn.commit()
 cur.close()
 conn.close()
-
-
-
-
-
