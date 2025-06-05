@@ -27,7 +27,7 @@ def multireplace(string, replacements):
 
 
 
-def bake_xml(project_id, template, output):
+def bake_xml(country_id, project_id, template, output):
     
     print(f'Creating metadata for project {project_id} ...')
 
@@ -38,12 +38,11 @@ def bake_xml(project_id, template, output):
     
     
     # iterate variables
-    sql = f'''SELECT l.mapset_id
-              FROM metadata.project p
-              LEFT JOIN metadata.mapset m ON m.project_id = p.project_id 
-              LEFT JOIN metadata.mapset l ON l.mapset_id = m.mapset_id 
-              WHERE p.project_id = '{project_id}'
-              ORDER BY l.mapset_id
+    sql = f'''SELECT mapset_id
+              FROM metadata.mapset
+              WHERE country_id = '{country_id}'
+                AND project_id = '{project_id}'
+              ORDER BY mapset_id
           '''
     cur.execute(sql)
     rows = cur.fetchall()
@@ -566,10 +565,12 @@ cur = conn.cursor()
 
 # run function
 template='/home/carva014/Work/Code/FAO/GloSIS-private/Metadata/template.xml'
-output='/home/carva014/Work/Code/FAO/GloSIS/glosis-datacube/PH/output'
-bake_xml('GSAS', template, output)
-bake_xml('GSOC', template, output)
-bake_xml('GSNM', template, output)
+output='/home/carva014/Work/Code/FAO/GloSIS/glosis-datacube/BT/output'
+country_id='BT'
+bake_xml(country_id, 'GSAS', template, output)
+bake_xml(country_id, 'GSOC', template, output)
+bake_xml(country_id, 'GSNM', template, output)
+bake_xml(country_id, 'OTHER', template, output)
 
 
 # close db connection

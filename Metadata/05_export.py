@@ -2,18 +2,18 @@
 
 import psycopg2
 
-def export_style(output, project_id):
+def export_style(output, country_id, project_id):
     
     print(f'Exporting XML, SLD, MAP for project {project_id} ...')
 
     # symbology
-    sql = f"""  SELECT DISTINCT pr.property_id, pr.sld
-                FROM metadata.project p 
-                LEFT JOIN metadata.mapset m ON m.project_id = p.project_id
-                LEFT JOIN metadata.property pr ON pr.property_id = m.property_id
-                WHERE pr.sld IS NOT NULL 
-                  AND p.project_id = '{project_id}'
-                ORDER BY pr.property_id"""
+    sql = f"""  SELECT DISTINCT p.property_id, p.sld
+                FROM metadata.mapset m
+                LEFT JOIN metadata.property p ON p.property_id = m.property_id
+                WHERE p.sld IS NOT NULL 
+                  AND m.country_id = '{country_id}'
+                  AND m.project_id = '{project_id}'
+                ORDER BY p.property_id"""
     cur.execute(sql)
     rows = cur.fetchall()
     for row in rows:
@@ -24,12 +24,12 @@ def export_style(output, project_id):
         write_file.close
 
     # metadata
-    sql = f"""  SELECT m.mapset_id, m.xml
-                FROM metadata.project p 
-                LEFT JOIN metadata.mapset m ON m.project_id = p.project_id
-                WHERE m.xml IS NOT NULL 
-                  AND p.project_id = '{project_id}'
-                ORDER BY m.mapset_id"""
+    sql = f"""  SELECT mapset_id, xml
+                FROM metadata.mapset
+                WHERE xml IS NOT NULL 
+                  AND country_id = '{country_id}'
+                  AND project_id = '{project_id}'
+                ORDER BY mapset_id"""
     cur.execute(sql)
     rows = cur.fetchall()
     for row in rows:
@@ -41,11 +41,11 @@ def export_style(output, project_id):
     
     # mapfile
     sql = f"""  SELECT l.layer_id, l.map
-                FROM metadata.project p 
-                LEFT JOIN metadata.mapset m ON m.project_id = p.project_id
+                FROM metadata.mapset m
                 LEFT JOIN metadata.layer l ON l.mapset_id = m.mapset_id  
                 WHERE l.map IS NOT NULL 
-                  AND p.project_id = '{project_id}'
+                  AND m.country_id = '{country_id}'
+                  AND m.project_id = '{project_id}'
                 ORDER BY l.layer_id"""
     cur.execute(sql)
     rows = cur.fetchall()
@@ -62,10 +62,12 @@ conn = psycopg2.connect("host='localhost' port='5432' dbname='iso19139' user='gl
 cur = conn.cursor()
 
 # run function
-output='/home/carva014/Work/Code/FAO/GloSIS/glosis-datacube/PH/output'
-export_style(output, 'GSOC')
-export_style(output, 'GSNM')
-export_style(output, 'GSAS')
+country_id='BT'
+output=f'/home/carva014/Work/Code/FAO/GloSIS/glosis-datacube/{country_id}/output'
+export_style(output, country_id, 'GSOC')
+export_style(output, country_id, 'GSNM')
+export_style(output, country_id, 'GSAS')
+export_style(output, country_id, 'OTHER')
 
 # close db connection
 conn.commit()
