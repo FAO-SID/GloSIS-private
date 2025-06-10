@@ -19,7 +19,7 @@ psql -h localhost -p 5432 -d iso19139 -U glosis -F custom -f /home/carva014/Work
 python /home/carva014/Work/Code/FAO/GloSIS-private/Metadata/04_table2xml.py
 python /home/carva014/Work/Code/FAO/GloSIS-private/Metadata/05_export.py
 /home/carva014/Work/Code/FAO/GloSIS-private/Metadata/06_GISMGR_style.sh
-/home/carva014/Work/Code/FAO/GloSIS-private/Metadata/07_GISMGR_map.sh
-/home/carva014/Work/Code/FAO/GloSIS-private/Metadata/08_GISMGR_mapset.sh
-/home/carva014/Work/Code/FAO/GloSIS-private/Metadata/09_GISMGR_upload.sh
-/home/carva014/Work/Code/FAO/GloSIS-private/Metadata/10_GISMGR_metadata.sh
+# /home/carva014/Work/Code/FAO/GloSIS-private/Metadata/07_GISMGR_map.sh
+# /home/carva014/Work/Code/FAO/GloSIS-private/Metadata/08_GISMGR_mapset.sh
+# /home/carva014/Work/Code/FAO/GloSIS-private/Metadata/09_GISMGR_upload.sh
+# /home/carva014/Work/Code/FAO/GloSIS-private/Metadata/10_GISMGR_metadata.sh
