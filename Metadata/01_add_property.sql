@@ -1,7 +1,3 @@
-INSERT INTO metadata.project (country_id, project_id, project_name) SELECT 'BT', project_id, project_name FROM metadata.project WHERE country_id = 'PH';
-INSERT INTO metadata.project (country_id, project_id, project_name) VALUES ('BT', 'OTHER', 'Other maps');
-
-
 INSERT INTO metadata.property (property_id, name, unit_id) VALUES
 ('CORGASRBAUU', 'Organic Carbon Sequestration Potential - ASR Business As Usual (BAU) uncertainty', 'tonnes C ha-1 yr-1'),
 ('CORGASRSSM1U', 'Organic Carbon Sequestration Potential - ASR SSM1 uncertainty', 'tonnes C ha-1 yr-1'),
@@ -45,5 +41,3 @@ INSERT INTO metadata.property (property_id, name, unit_id) VALUES
 
 INSERT INTO metadata.property (property_id, name, unit_id, property_type, num_intervals) VALUES
 ('CLAWRB', 'World Reference Base', 'class', 'categorical', 7);
-
-

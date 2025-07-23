@@ -1,3 +1,8 @@
+-- project
+INSERT INTO metadata.project (country_id, project_id, project_name) SELECT 'BT', project_id, project_name FROM metadata.project WHERE country_id = 'PH';
+INSERT INTO metadata.project (country_id, project_id, project_name) VALUES ('BT', 'OTHER', 'Other maps');
+
+
 -- title
 UPDATE metadata.mapset m SET title = t.title
     FROM (SELECT DISTINCT m.mapset_id, p.name||' ('||c.en||' - '||l.distance||' '||l.distance_uom||')' AS title
