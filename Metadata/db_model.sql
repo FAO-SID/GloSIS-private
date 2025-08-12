@@ -1,15 +1,15 @@
--- DROP SCHEMA IF EXISTS metadata CASCADE;
-CREATE SCHEMA metadata;
-ALTER SCHEMA metadata OWNER TO glosis;
-COMMENT ON SCHEMA metadata IS 'Schema for glosis metadata';
-GRANT USAGE ON SCHEMA metadata TO glosis_r;
+-- DROP SCHEMA IF EXISTS spatial_metadata CASCADE;
+CREATE SCHEMA spatial_metadata;
+ALTER SCHEMA spatial_metadata OWNER TO sis;
+COMMENT ON SCHEMA spatial_metadata IS 'Schema for spatial metadata';
+GRANT USAGE ON SCHEMA spatial_metadata TO sis_r;
 
 
 --------------------------------
 --     TRIGGER FUNCTION       --
 --------------------------------
 
-CREATE OR REPLACE FUNCTION metadata.class()
+CREATE OR REPLACE FUNCTION spatial_metadata.class()
 RETURNS TRIGGER AS $$
 DECLARE
     range FLOAT;
@@ -54,7 +54,7 @@ BEGIN
     current_max := NEW.min + interval_size;
 
     -- Delete existing rows for this property_id
-    DELETE FROM metadata.class WHERE property_id = NEW.property_id;
+    DELETE FROM spatial_metadata.class WHERE property_id = NEW.property_id;
 
     -- Extract RGB components from start_color and end_color
     start_r := ('x' || SUBSTRING(NEW.start_color FROM 2 FOR 2))::BIT(8)::INT;
@@ -73,7 +73,7 @@ BEGIN
                 LPAD(TO_HEX(start_b + (end_b - start_b) * (i - 1) / (NEW.num_intervals - 1)), 2, '0');
 
         -- Insert the class interval and color into the categories table
-        INSERT INTO metadata.class (property_id, value, code, "label", color, opacity, publish)
+        INSERT INTO spatial_metadata.class (property_id, value, code, "label", color, opacity, publish)
         VALUES (NEW.property_id, current_min::numeric(20,2), 
               current_min::numeric(20,2) || ' - ' || current_max::numeric(20,2), 
               current_min::numeric(20,2) || ' - ' || current_max::numeric(20,2), 
@@ -96,10 +96,10 @@ BEGIN
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
-ALTER FUNCTION metadata.class() OWNER TO glosis;
+ALTER FUNCTION spatial_metadata.class() OWNER TO sis;
 
 
-CREATE OR REPLACE FUNCTION metadata.map()
+CREATE OR REPLACE FUNCTION spatial_metadata.map()
  RETURNS trigger
  LANGUAGE plpgsql
 AS $function$
@@ -121,17 +121,17 @@ SELECT
 	l.stats_minimum,
 	l.stats_maximum
 INTO rec_layer
-FROM metadata.layer l 
+FROM spatial_metadata.layer l 
 WHERE l.layer_id = NEW.layer_id;
 
 SELECT m.mapset_id,
   p.start_color,
   p.end_color
 INTO rec_property
-FROM metadata.mapset m, metadata.property p
+FROM spatial_metadata.mapset m, spatial_metadata.property p
 WHERE m.property_id = split_part(NEW.layer_id,'-',3);
 
-UPDATE metadata.layer l SET map = 'MAP
+UPDATE spatial_metadata.layer l SET map = 'MAP
   NAME "'||rec_layer.layer_id||'"
   EXTENT '||rec_layer.extent||'
   UNITS '||rec_layer.distance_uom||'
@@ -175,10 +175,10 @@ WHERE l.layer_id = NEW.layer_id;
   RETURN NEW;
 END
 $function$;
-ALTER FUNCTION metadata.map() OWNER TO glosis;
+ALTER FUNCTION spatial_metadata.map() OWNER TO sis;
 
 
-CREATE OR REPLACE FUNCTION metadata.sld()
+CREATE OR REPLACE FUNCTION spatial_metadata.sld()
 RETURNS trigger
 LANGUAGE 'plpgsql'
 COST 100
@@ -220,10 +220,10 @@ BEGIN
                 CASE WHEN property_type='categorical'  THEN 'values'
                     WHEN property_type='quantitative' THEN 'intervals'
                     END property_type
-                FROM metadata.property ORDER BY property_id
+                FROM spatial_metadata.property ORDER BY property_id
     LOOP
 	
-      FOR sub_rec IN SELECT code, value, color, opacity, label FROM metadata.class WHERE property_id = rec.property_id AND publish IS TRUE ORDER BY value
+      FOR sub_rec IN SELECT code, value, color, opacity, label FROM spatial_metadata.class WHERE property_id = rec.property_id AND publish IS TRUE ORDER BY value
     	LOOP
 		
 			SELECT E'\n             <sld:ColorMapEntry quantity="' ||sub_rec.value|| '" color="' ||sub_rec.color|| '" opacity="' ||sub_rec.opacity|| '" label="' ||sub_rec.label|| '"/>' INTO new_row;
@@ -232,7 +232,7 @@ BEGIN
 		
 		END LOOP;
 		
-		  UPDATE metadata.property SET sld = replace(replace(part_1,'LAYER_NAME',rec.property_id),'property_type',rec.property_type) || part_2 || part_3 WHERE property_id = rec.property_id;
+		  UPDATE spatial_metadata.property SET sld = replace(replace(part_1,'LAYER_NAME',rec.property_id),'property_type',rec.property_type) || part_2 || part_3 WHERE property_id = rec.property_id;
 		  SELECT '' INTO part_2;
 		  SELECT '' INTO new_row;
 		  
@@ -240,14 +240,14 @@ BEGIN
   RETURN NEW;
 END
 $BODY$;
-ALTER FUNCTION metadata.sld() OWNER TO glosis;
+ALTER FUNCTION spatial_metadata.sld() OWNER TO sis;
 
 
 --------------------------
 --        TABLE         --
 --------------------------
 
-CREATE TABLE metadata.country (
+CREATE TABLE spatial_metadata.country (
 	country_id bpchar(2) NOT NULL,
 	iso3_code bpchar(3) NULL,
 	gaul_code int4 NULL,
@@ -267,21 +267,21 @@ CREATE TABLE metadata.country (
 	unreg_note text NULL,
 	continent_custom text NULL
 );
-ALTER TABLE metadata.country OWNER TO glosis;
-GRANT SELECT ON TABLE metadata.country TO glosis_r;
+ALTER TABLE spatial_metadata.country OWNER TO sis;
+GRANT SELECT ON TABLE spatial_metadata.country TO sis_r;
 
 
-CREATE TABLE metadata.project (
+CREATE TABLE spatial_metadata.project (
   country_id text NOT NULL,
   project_id text NOT NULL,
   project_name text,
   project_description text
 );
-ALTER TABLE metadata.project OWNER TO glosis;
-GRANT SELECT ON TABLE metadata.project TO glosis_r;
+ALTER TABLE spatial_metadata.project OWNER TO sis;
+GRANT SELECT ON TABLE spatial_metadata.project TO sis_r;
 
 
-CREATE TABLE metadata.mapset (
+CREATE TABLE spatial_metadata.mapset (
   country_id text NOT NULL,
   project_id text NOT NULL,
   property_id text NOT NULL,
@@ -337,10 +337,10 @@ CREATE TABLE metadata.mapset (
   CONSTRAINT mapset_spatial_representation_type_code_check CHECK ((spatial_representation_type_code = ANY (ARRAY['grid', 'vector', 'textTable', 'tin', 'stereoModel', 'video']))),
   CONSTRAINT mapset_presentation_form_check CHECK ((presentation_form = ANY (ARRAY['mapDigital', 'tableDigital', 'mapHardcopy', 'atlasHardcopy'])))
 );
-ALTER TABLE metadata.mapset OWNER TO glosis;
-GRANT SELECT ON TABLE metadata.mapset TO glosis_r;
+ALTER TABLE spatial_metadata.mapset OWNER TO sis;
+GRANT SELECT ON TABLE spatial_metadata.mapset TO sis_r;
 
-CREATE TABLE metadata.property (
+CREATE TABLE spatial_metadata.property (
   property_id text NOT NULL,
   name text,
   unit_id text,
@@ -354,11 +354,11 @@ CREATE TABLE metadata.property (
   sld text,
   CONSTRAINT property_property_type_check CHECK ((property_type = ANY (ARRAY['quantitative', 'categorical'])))
 );
-ALTER TABLE metadata.property OWNER TO glosis;
-GRANT SELECT ON TABLE metadata.property TO glosis_r;
+ALTER TABLE spatial_metadata.property OWNER TO sis;
+GRANT SELECT ON TABLE spatial_metadata.property TO sis_r;
 
 
-CREATE TABLE metadata.layer (
+CREATE TABLE spatial_metadata.layer (
   mapset_id text NOT NULL,
   dimension_des text,
   file_path text NOT NULL,
@@ -398,45 +398,45 @@ CREATE TABLE metadata.layer (
   map text,
   CONSTRAINT layer_distance_uom_check CHECK ((distance_uom = ANY (ARRAY['m', 'km', 'deg'])))
 );
-ALTER TABLE metadata.layer OWNER TO glosis;
-GRANT SELECT ON TABLE metadata.layer TO glosis_r;
+ALTER TABLE spatial_metadata.layer OWNER TO sis;
+GRANT SELECT ON TABLE spatial_metadata.layer TO sis_r;
 
 
-CREATE TABLE metadata.metadata_manual (
-  mapset_id	text,
-  title text,
-  unit_id text,
-  creation_date text,
-  revision_date text,
-  publication_date text,
-  abstract text,
-  keyword_theme text[],
-  keyword_place text[],
-  access_constraints text,
-  use_constraints text,
-  other_constraints text,
-  time_period_begin text,
-  time_period_end text,
-  citation_md_identifier_code text,
-  lineage_statement text,
-  organisation_id text,
-  url text,
-  organisation_email text,
-  country text,
-  city text,
-  postal_code text,
-  delivery_point text,
-  individual_id text,
-  email text,
-  position text,
-  url_paper text,
-  url_project text
-);
-ALTER TABLE metadata.metadata_manual OWNER TO glosis;
-GRANT SELECT ON TABLE metadata.metadata_manual TO glosis_r;
+-- CREATE TABLE spatial_metadata.metadata_manual (
+--   mapset_id	text,
+--   title text,
+--   unit_id text,
+--   creation_date text,
+--   revision_date text,
+--   publication_date text,
+--   abstract text,
+--   keyword_theme text[],
+--   keyword_place text[],
+--   access_constraints text,
+--   use_constraints text,
+--   other_constraints text,
+--   time_period_begin text,
+--   time_period_end text,
+--   citation_md_identifier_code text,
+--   lineage_statement text,
+--   organisation_id text,
+--   url text,
+--   organisation_email text,
+--   country text,
+--   city text,
+--   postal_code text,
+--   delivery_point text,
+--   individual_id text,
+--   email text,
+--   position text,
+--   url_paper text,
+--   url_project text
+-- );
+-- ALTER TABLE spatial_metadata.metadata_manual OWNER TO sis;
+-- GRANT SELECT ON TABLE spatial_metadata.metadata_manual TO sis_r;
 
 
-CREATE TABLE IF NOT EXISTS metadata.class
+CREATE TABLE IF NOT EXISTS spatial_metadata.class
 (   
   property_id text NOT NULL,
   value real NOT NULL,
@@ -446,11 +446,11 @@ CREATE TABLE IF NOT EXISTS metadata.class
   opacity real NOT NULL,
   publish boolean NOT NULL
 );
-ALTER TABLE metadata.class OWNER TO glosis;
-GRANT SELECT ON TABLE metadata.class TO glosis_r;
+ALTER TABLE spatial_metadata.class OWNER TO sis;
+GRANT SELECT ON TABLE spatial_metadata.class TO sis_r;
 
 
-CREATE TABLE metadata.ver_x_org_x_ind (
+CREATE TABLE spatial_metadata.ver_x_org_x_ind (
   mapset_id text NOT NULL,
   tag text,
   role text,
@@ -460,11 +460,11 @@ CREATE TABLE metadata.ver_x_org_x_ind (
   CONSTRAINT ver_x_org_x_ind_tag_check CHECK ((tag = ANY (ARRAY['contact', 'pointOfContact'])))
   CONSTRAINT ver_x_org_x_ind_role_check CHECK ((role = ANY (ARRAY['author', 'custodian', 'distributor', 'originator', 'owner', 'pointOfContact', 'principalInvestigator', 'processor', 'publisher', 'resourceProvider', 'user'])))
 );
-ALTER TABLE metadata.ver_x_org_x_ind OWNER TO glosis;
-GRANT SELECT ON TABLE metadata.ver_x_org_x_ind TO glosis_r;
+ALTER TABLE spatial_metadata.ver_x_org_x_ind OWNER TO sis;
+GRANT SELECT ON TABLE spatial_metadata.ver_x_org_x_ind TO sis_r;
 
 
-CREATE TABLE metadata.organisation (
+CREATE TABLE spatial_metadata.organisation (
   organisation_id text NOT NULL,
   url text,
   email text,
@@ -475,60 +475,60 @@ CREATE TABLE metadata.organisation (
   phone text,
   facsimile text
 );
-ALTER TABLE metadata.organisation OWNER TO glosis;
-GRANT SELECT ON TABLE metadata.organisation TO glosis_r;
+ALTER TABLE spatial_metadata.organisation OWNER TO sis;
+GRANT SELECT ON TABLE spatial_metadata.organisation TO sis_r;
 
 
-CREATE TABLE metadata.individual (
+CREATE TABLE spatial_metadata.individual (
   individual_id text NOT NULL,
   email text    
 );
-ALTER TABLE metadata.individual OWNER TO glosis;
-GRANT SELECT ON TABLE metadata.individual TO glosis_r;
+ALTER TABLE spatial_metadata.individual OWNER TO sis;
+GRANT SELECT ON TABLE spatial_metadata.individual TO sis_r;
 
 
-CREATE TABLE metadata.url (
+CREATE TABLE spatial_metadata.url (
   mapset_id text NOT NULL,
   protocol text NOT NULL,
   url text NOT NULL,
   url_name text NOT NULL
   CONSTRAINT url_protocol_check CHECK ((protocol = ANY (ARRAY['OGC:WMS','OGC:WMTS','WWW:LINK-1.0-http--link', 'WWW:LINK-1.0-http--related'])))
 );
-ALTER TABLE metadata.url OWNER TO glosis;
-GRANT SELECT ON TABLE metadata.url TO glosis_r;
+ALTER TABLE spatial_metadata.url OWNER TO sis;
+GRANT SELECT ON TABLE spatial_metadata.url TO sis_r;
 
 
 --------------------------
 --     PRIMARY KEY      --
 --------------------------
 
-ALTER TABLE metadata.country ADD PRIMARY KEY (country_id);
-ALTER TABLE metadata.project ADD PRIMARY KEY (country_id, project_id);
-ALTER TABLE metadata.mapset ADD PRIMARY KEY (mapset_id);
-ALTER TABLE metadata.mapset ADD UNIQUE (file_identifier);
-ALTER TABLE metadata.property ADD PRIMARY KEY (property_id);
-ALTER TABLE metadata.layer ADD PRIMARY KEY (layer_id);
-ALTER TABLE metadata.metadata_manual ADD PRIMARY KEY (mapset_id);
-ALTER TABLE metadata.class ADD PRIMARY KEY (property_id, value);
-ALTER TABLE metadata.ver_x_org_x_ind ADD PRIMARY KEY (mapset_id, tag, role, position, organisation_id, individual_id);
-ALTER TABLE metadata.organisation ADD PRIMARY KEY (organisation_id);
-ALTER TABLE metadata.individual ADD PRIMARY KEY (individual_id);
-ALTER TABLE metadata.url ADD PRIMARY KEY (mapset_id, protocol, url);
+ALTER TABLE spatial_metadata.country ADD PRIMARY KEY (country_id);
+ALTER TABLE spatial_metadata.project ADD PRIMARY KEY (country_id, project_id);
+ALTER TABLE spatial_metadata.mapset ADD PRIMARY KEY (mapset_id);
+ALTER TABLE spatial_metadata.mapset ADD UNIQUE (file_identifier);
+ALTER TABLE spatial_metadata.property ADD PRIMARY KEY (property_id);
+ALTER TABLE spatial_metadata.layer ADD PRIMARY KEY (layer_id);
+-- ALTER TABLE spatial_metadata.metadata_manual ADD PRIMARY KEY (mapset_id);
+ALTER TABLE spatial_metadata.class ADD PRIMARY KEY (property_id, value);
+ALTER TABLE spatial_metadata.ver_x_org_x_ind ADD PRIMARY KEY (mapset_id, tag, role, position, organisation_id, individual_id);
+ALTER TABLE spatial_metadata.organisation ADD PRIMARY KEY (organisation_id);
+ALTER TABLE spatial_metadata.individual ADD PRIMARY KEY (individual_id);
+ALTER TABLE spatial_metadata.url ADD PRIMARY KEY (mapset_id, protocol, url);
 
 
 --------------------------
 --     FOREIGN KEY      --
 --------------------------
 
-ALTER TABLE metadata.ver_x_org_x_ind ADD FOREIGN KEY (individual_id) REFERENCES metadata.individual(individual_id) ON UPDATE CASCADE ON DELETE CASCADE;
-ALTER TABLE metadata.ver_x_org_x_ind ADD FOREIGN KEY (organisation_id) REFERENCES metadata.organisation(organisation_id) ON UPDATE CASCADE ON DELETE CASCADE;
-ALTER TABLE metadata.ver_x_org_x_ind ADD FOREIGN KEY (mapset_id) REFERENCES metadata.mapset(mapset_id) ON UPDATE CASCADE ON DELETE CASCADE;
-ALTER TABLE metadata.url ADD FOREIGN KEY (mapset_id) REFERENCES metadata.mapset(mapset_id) ON UPDATE CASCADE ON DELETE CASCADE;
-ALTER TABLE metadata.class ADD FOREIGN KEY (property_id) REFERENCES metadata.property(property_id) ON UPDATE CASCADE ON DELETE CASCADE;
-ALTER TABLE metadata.layer ADD FOREIGN KEY (mapset_id) REFERENCES metadata.mapset(mapset_id) ON UPDATE CASCADE ON DELETE CASCADE;
-ALTER TABLE metadata.mapset ADD FOREIGN KEY (country_id, project_id) REFERENCES metadata.project(country_id, project_id) ON UPDATE CASCADE ON DELETE CASCADE;
-ALTER TABLE metadata.mapset ADD FOREIGN KEY (property_id) REFERENCES metadata.property(property_id) ON UPDATE CASCADE ON DELETE NO ACTION;
-ALTER TABLE metadata.project ADD FOREIGN KEY (country_id) REFERENCES metadata.country(country_id) ON UPDATE CASCADE ON DELETE NO ACTION;
+ALTER TABLE spatial_metadata.ver_x_org_x_ind ADD FOREIGN KEY (individual_id) REFERENCES spatial_metadata.individual(individual_id) ON UPDATE CASCADE ON DELETE CASCADE;
+ALTER TABLE spatial_metadata.ver_x_org_x_ind ADD FOREIGN KEY (organisation_id) REFERENCES spatial_metadata.organisation(organisation_id) ON UPDATE CASCADE ON DELETE CASCADE;
+ALTER TABLE spatial_metadata.ver_x_org_x_ind ADD FOREIGN KEY (mapset_id) REFERENCES spatial_metadata.mapset(mapset_id) ON UPDATE CASCADE ON DELETE CASCADE;
+ALTER TABLE spatial_metadata.url ADD FOREIGN KEY (mapset_id) REFERENCES spatial_metadata.mapset(mapset_id) ON UPDATE CASCADE ON DELETE CASCADE;
+ALTER TABLE spatial_metadata.class ADD FOREIGN KEY (property_id) REFERENCES spatial_metadata.property(property_id) ON UPDATE CASCADE ON DELETE CASCADE;
+ALTER TABLE spatial_metadata.layer ADD FOREIGN KEY (mapset_id) REFERENCES spatial_metadata.mapset(mapset_id) ON UPDATE CASCADE ON DELETE CASCADE;
+ALTER TABLE spatial_metadata.mapset ADD FOREIGN KEY (country_id, project_id) REFERENCES spatial_metadata.project(country_id, project_id) ON UPDATE CASCADE ON DELETE CASCADE;
+ALTER TABLE spatial_metadata.mapset ADD FOREIGN KEY (property_id) REFERENCES spatial_metadata.property(property_id) ON UPDATE CASCADE ON DELETE NO ACTION;
+ALTER TABLE spatial_metadata.project ADD FOREIGN KEY (country_id) REFERENCES spatial_metadata.country(country_id) ON UPDATE CASCADE ON DELETE NO ACTION;
 
 
 --------------------------
@@ -537,23 +537,23 @@ ALTER TABLE metadata.project ADD FOREIGN KEY (country_id) REFERENCES metadata.co
 
 CREATE TRIGGER class
   AFTER UPDATE OF property_type, num_intervals, start_color, end_color, min, max
-  ON metadata.property
+  ON spatial_metadata.property
   FOR EACH ROW
-  EXECUTE FUNCTION metadata.class();
+  EXECUTE FUNCTION spatial_metadata.class();
 
 CREATE TRIGGER sld
-  AFTER INSERT OR UPDATE ON metadata.class
+  AFTER INSERT OR UPDATE ON spatial_metadata.class
   FOR EACH STATEMENT
-  EXECUTE FUNCTION metadata.sld();
+  EXECUTE FUNCTION spatial_metadata.sld();
 
 CREATE TRIGGER map_layer
   AFTER UPDATE OF layer_id, mapset_id, distance_uom, reference_system_identifier_code, extent, file_extension, stats_minimum, stats_maximum
-  ON metadata.layer
+  ON spatial_metadata.layer
   FOR EACH ROW
-  EXECUTE FUNCTION metadata.map();
+  EXECUTE FUNCTION spatial_metadata.map();
 
 -- CREATE TRIGGER map_property
 -- AFTER UPDATE OF property_id, start_color, end_color
--- ON metadata.property
+-- ON spatial_metadata.property
 -- FOR EACH ROW
--- EXECUTE FUNCTION metadata.map();
+-- EXECUTE FUNCTION spatial_metadata.map();
