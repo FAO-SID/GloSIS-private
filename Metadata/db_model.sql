@@ -294,7 +294,7 @@ CREATE TABLE spatial_metadata.mapset (
   metadata_standard_version text DEFAULT '1.0',
   reference_system_identifier_code_space text DEFAULT 'EPSG',
   title text,
-  unit_id text,
+  unit_of_measure_id text,
   creation_date date,
   publication_date date,
   revision_date date,
@@ -343,10 +343,9 @@ GRANT SELECT ON TABLE spatial_metadata.mapset TO sis_r;
 CREATE TABLE spatial_metadata.property (
   property_id text NOT NULL,
   name text,
-  unit_id text,
+  property_phys_chem_id text,
   min real,
   max real,
-  uri text,
   property_type text NOT NULL,
   num_intervals smallint NOT NULL, 
   start_color text NOT NULL, 
@@ -402,40 +401,6 @@ ALTER TABLE spatial_metadata.layer OWNER TO sis;
 GRANT SELECT ON TABLE spatial_metadata.layer TO sis_r;
 
 
--- CREATE TABLE spatial_metadata.metadata_manual (
---   mapset_id	text,
---   title text,
---   unit_id text,
---   creation_date text,
---   revision_date text,
---   publication_date text,
---   abstract text,
---   keyword_theme text[],
---   keyword_place text[],
---   access_constraints text,
---   use_constraints text,
---   other_constraints text,
---   time_period_begin text,
---   time_period_end text,
---   citation_md_identifier_code text,
---   lineage_statement text,
---   organisation_id text,
---   url text,
---   organisation_email text,
---   country text,
---   city text,
---   postal_code text,
---   delivery_point text,
---   individual_id text,
---   email text,
---   position text,
---   url_paper text,
---   url_project text
--- );
--- ALTER TABLE spatial_metadata.metadata_manual OWNER TO sis;
--- GRANT SELECT ON TABLE spatial_metadata.metadata_manual TO sis_r;
-
-
 CREATE TABLE IF NOT EXISTS spatial_metadata.class
 (   
   property_id text NOT NULL,
@@ -450,18 +415,19 @@ ALTER TABLE spatial_metadata.class OWNER TO sis;
 GRANT SELECT ON TABLE spatial_metadata.class TO sis_r;
 
 
-CREATE TABLE spatial_metadata.ver_x_org_x_ind (
-  mapset_id text NOT NULL,
+CREATE TABLE spatial_metadata.proj_x_org_x_ind (
+  country_id text NOT NULL,
+  project_id text NOT NULL,
+  organisation_id text NOT NULL,
+  individual_id text,
+  position text,
   tag text,
   role text,
-  position text,
-  organisation_id text NOT NULL,
-  individual_id text
-  CONSTRAINT ver_x_org_x_ind_tag_check CHECK ((tag = ANY (ARRAY['contact', 'pointOfContact'])))
-  CONSTRAINT ver_x_org_x_ind_role_check CHECK ((role = ANY (ARRAY['author', 'custodian', 'distributor', 'originator', 'owner', 'pointOfContact', 'principalInvestigator', 'processor', 'publisher', 'resourceProvider', 'user'])))
+  CONSTRAINT proj_x_org_x_ind_tag_check CHECK ((tag = ANY (ARRAY['contact', 'pointOfContact']))),
+  CONSTRAINT proj_x_org_x_ind_role_check CHECK ((role = ANY (ARRAY['author', 'custodian', 'distributor', 'originator', 'owner', 'pointOfContact', 'principalInvestigator', 'processor', 'publisher', 'resourceProvider', 'user'])))
 );
-ALTER TABLE spatial_metadata.ver_x_org_x_ind OWNER TO sis;
-GRANT SELECT ON TABLE spatial_metadata.ver_x_org_x_ind TO sis_r;
+ALTER TABLE spatial_metadata.proj_x_org_x_ind OWNER TO sis;
+GRANT SELECT ON TABLE spatial_metadata.proj_x_org_x_ind TO sis_r;
 
 
 CREATE TABLE spatial_metadata.organisation (
@@ -508,9 +474,8 @@ ALTER TABLE spatial_metadata.mapset ADD PRIMARY KEY (mapset_id);
 ALTER TABLE spatial_metadata.mapset ADD UNIQUE (file_identifier);
 ALTER TABLE spatial_metadata.property ADD PRIMARY KEY (property_id);
 ALTER TABLE spatial_metadata.layer ADD PRIMARY KEY (layer_id);
--- ALTER TABLE spatial_metadata.metadata_manual ADD PRIMARY KEY (mapset_id);
 ALTER TABLE spatial_metadata.class ADD PRIMARY KEY (property_id, value);
-ALTER TABLE spatial_metadata.ver_x_org_x_ind ADD PRIMARY KEY (mapset_id, tag, role, position, organisation_id, individual_id);
+ALTER TABLE spatial_metadata.proj_x_org_x_ind ADD PRIMARY KEY (country_id, project_id, organisation_id, individual_id, position, tag, role);
 ALTER TABLE spatial_metadata.organisation ADD PRIMARY KEY (organisation_id);
 ALTER TABLE spatial_metadata.individual ADD PRIMARY KEY (individual_id);
 ALTER TABLE spatial_metadata.url ADD PRIMARY KEY (mapset_id, protocol, url);
@@ -520,15 +485,18 @@ ALTER TABLE spatial_metadata.url ADD PRIMARY KEY (mapset_id, protocol, url);
 --     FOREIGN KEY      --
 --------------------------
 
-ALTER TABLE spatial_metadata.ver_x_org_x_ind ADD FOREIGN KEY (individual_id) REFERENCES spatial_metadata.individual(individual_id) ON UPDATE CASCADE ON DELETE CASCADE;
-ALTER TABLE spatial_metadata.ver_x_org_x_ind ADD FOREIGN KEY (organisation_id) REFERENCES spatial_metadata.organisation(organisation_id) ON UPDATE CASCADE ON DELETE CASCADE;
-ALTER TABLE spatial_metadata.ver_x_org_x_ind ADD FOREIGN KEY (mapset_id) REFERENCES spatial_metadata.mapset(mapset_id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+ALTER TABLE spatial_metadata.proj_x_org_x_ind ADD FOREIGN KEY (country_id, project_id) REFERENCES spatial_metadata.project(country_id, project_id) ON UPDATE CASCADE ON DELETE CASCADE;
+ALTER TABLE spatial_metadata.proj_x_org_x_ind ADD FOREIGN KEY (organisation_id) REFERENCES spatial_metadata.organisation(organisation_id) ON UPDATE CASCADE ON DELETE CASCADE;
+ALTER TABLE spatial_metadata.proj_x_org_x_ind ADD FOREIGN KEY (individual_id) REFERENCES spatial_metadata.individual(individual_id) ON UPDATE CASCADE ON DELETE CASCADE;
 ALTER TABLE spatial_metadata.url ADD FOREIGN KEY (mapset_id) REFERENCES spatial_metadata.mapset(mapset_id) ON UPDATE CASCADE ON DELETE CASCADE;
 ALTER TABLE spatial_metadata.class ADD FOREIGN KEY (property_id) REFERENCES spatial_metadata.property(property_id) ON UPDATE CASCADE ON DELETE CASCADE;
 ALTER TABLE spatial_metadata.layer ADD FOREIGN KEY (mapset_id) REFERENCES spatial_metadata.mapset(mapset_id) ON UPDATE CASCADE ON DELETE CASCADE;
 ALTER TABLE spatial_metadata.mapset ADD FOREIGN KEY (country_id, project_id) REFERENCES spatial_metadata.project(country_id, project_id) ON UPDATE CASCADE ON DELETE CASCADE;
 ALTER TABLE spatial_metadata.mapset ADD FOREIGN KEY (property_id) REFERENCES spatial_metadata.property(property_id) ON UPDATE CASCADE ON DELETE NO ACTION;
+ALTER TABLE spatial_metadata.mapset ADD FOREIGN KEY (unit_of_measure_id) REFERENCES soil_data.unit_of_measure(unit_of_measure_id) ON UPDATE CASCADE ON DELETE NO ACTION;
 ALTER TABLE spatial_metadata.project ADD FOREIGN KEY (country_id) REFERENCES spatial_metadata.country(country_id) ON UPDATE CASCADE ON DELETE NO ACTION;
+ALTER TABLE spatial_metadata.property ADD FOREIGN KEY (property_phys_chem_id) REFERENCES soil_data.property_phys_chem(property_phys_chem_id) ON UPDATE CASCADE ON DELETE NO ACTION;
 
 
 --------------------------
