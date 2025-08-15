@@ -55,15 +55,15 @@ def spatial_data_scan(rootdir):
                 mapset_id = '-'.join(layer_id.split('-')[:4])
 
                 # insert project
-                sql = f"INSERT INTO metadata.project(country_id, project_id) VALUES('{country_id}', '{project_id}') ON CONFLICT (country_id, project_id) DO NOTHING"
+                sql = f"INSERT INTO spatial_metadata.project(country_id, project_id) VALUES('{country_id}', '{project_id}') ON CONFLICT (country_id, project_id) DO NOTHING"
                 cur.execute(sql)
 
                 # insert mapset and layer
                 # print (file_name)
-                sql = f"INSERT INTO metadata.mapset(country_id, project_id, property_id, mapset_id) VALUES('{country_id}', '{project_id}', '{property_id}', '{mapset_id}') ON CONFLICT (mapset_id) DO NOTHING"
+                sql = f"INSERT INTO spatial_metadata.mapset(country_id, project_id, property_id, mapset_id) VALUES('{country_id}', '{project_id}', '{property_id}', '{mapset_id}') ON CONFLICT (mapset_id) DO NOTHING"
                 cur.execute(sql)
                 dimension_des = layer_id.split('-')[4] + '-' + layer_id.split('-')[5]
-                sql = f"INSERT INTO metadata.layer(mapset_id, dimension_des, file_path, layer_id, file_extension, file_size, file_size_pretty) VALUES('{mapset_id}', '{dimension_des}','{file_path}','{layer_id}','{file_extension}','{file_size}','{file_size_pretty}')"
+                sql = f"INSERT INTO spatial_metadata.layer(mapset_id, dimension_des, file_path, layer_id, file_extension, file_size, file_size_pretty) VALUES('{mapset_id}', '{dimension_des}','{file_path}','{layer_id}','{file_extension}','{file_size}','{file_size_pretty}')"
                 cur.execute(sql)
 
                 # open file with GDAL
@@ -133,30 +133,30 @@ def spatial_data_scan(rootdir):
 
                     # insert text data
                     for key, value in dic_gdal_text.items():
-                        sql = f"UPDATE metadata.layer SET {key} = '{value}' WHERE layer_id = '{layer_id}' AND file_path = '{file_path}'"
+                        sql = f"UPDATE spatial_metadata.layer SET {key} = '{value}' WHERE layer_id = '{layer_id}' AND file_path = '{file_path}'"
                         cur.execute(sql)
 
                     # insert num data
                     for key, value in dic_gdal_num.items():
-                        sql = f"UPDATE metadata.layer SET {key} = {value} WHERE layer_id = '{layer_id}' AND file_path = '{file_path}'"
+                        sql = f"UPDATE spatial_metadata.layer SET {key} = {value} WHERE layer_id = '{layer_id}' AND file_path = '{file_path}'"
                         cur.execute(sql)
 
             # commit changes in the DB per file
             conn.commit()
     
     # remove -123456789 values
-    sql = """UPDATE metadata.layer SET compression = NULL WHERE compression='None';
-         UPDATE metadata.layer SET stats_mean = NULL WHERE stats_mean=-123456789;
-         UPDATE metadata.layer SET stats_std_dev = NULL WHERE stats_std_dev=-123456789;
-         UPDATE metadata.layer SET no_data_value = NULL WHERE no_data_value=-123456789;"""
+    sql = """UPDATE spatial_metadata.layer SET compression = NULL WHERE compression='None';
+             UPDATE spatial_metadata.layer SET stats_mean = NULL WHERE stats_mean=-123456789;
+             UPDATE spatial_metadata.layer SET stats_std_dev = NULL WHERE stats_std_dev=-123456789;
+             UPDATE spatial_metadata.layer SET no_data_value = NULL WHERE no_data_value=-123456789;"""
     cur.execute(sql)
 
     # update property min and max
-    sql = """UPDATE metadata.property p
-        SET min = t.min,
-            max = t.max
-        FROM (SELECT split_part(mapset_id,'-',3) property_id, min(stats_minimum) min, max(stats_maximum) max FROM metadata.layer GROUP BY split_part(mapset_id,'-',3)) t
-        WHERE p.property_id = t.property_id"""
+    sql = """UPDATE spatial_metadata.property p
+             SET min = t.min,
+                 max = t.max
+             FROM (SELECT split_part(mapset_id,'-',3) property_id, min(stats_minimum) min, max(stats_maximum) max FROM spatial_metadata.layer GROUP BY split_part(mapset_id,'-',3)) t
+             WHERE p.property_id = t.property_id"""
     cur.execute(sql)
 
 
