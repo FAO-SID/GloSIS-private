@@ -3,28 +3,30 @@ INSERT INTO spatial_metadata.project (country_id, project_id, project_name) SELE
 INSERT INTO spatial_metadata.project (country_id, project_id, project_name) VALUES ('BT', 'OTHER', 'Other maps') ON CONFLICT (country_id, project_id) DO NOTHING;
 
 
--- title
-UPDATE spatial_metadata.mapset m SET title = t.title
-    FROM (SELECT DISTINCT m.mapset_id, p.name||' ('||c.en||' - '||l.distance||' '||l.distance_uom||')' AS title
-            FROM spatial_metadata.mapset m
-            LEFT JOIN spatial_metadata.property p ON p.property_id = m.property_id
-            LEFT JOIN spatial_metadata.country c ON c.country_id = m.country_id
-            LEFT JOIN spatial_metadata.layer l ON l.mapset_id = m.mapset_id) t
-    WHERE m.mapset_id = t.mapset_id AND m.country_id = 'BT';
-
-
--- unit_of_measure_id
-UPDATE spatial_metadata.mapset t1
-SET unit_of_measure_id = t2.unit_of_measure_id 
-FROM (SELECT property_id, unit_of_measure_id FROM spatial_metadata.mapset WHERE country_id = 'PH') t2
-WHERE country_id = 'BT' AND t1.property_id = t2.property_id;
-
-
 -- dates
 UPDATE spatial_metadata.mapset SET creation_date = '2021-12-17', publication_date = '2021-12-17', revision_date = '2021-12-17' WHERE country_id = 'BT' AND project_id = 'GSAS';
 UPDATE spatial_metadata.mapset SET creation_date = '2024-03-28', publication_date = '2024-03-28', revision_date = '2024-03-28' WHERE country_id = 'BT' AND project_id = 'GSNM';
 UPDATE spatial_metadata.mapset SET creation_date = '2022-11-11', publication_date = '2022-11-11', revision_date = '2022-11-11' WHERE country_id = 'BT' AND project_id = 'GSOC';
 UPDATE spatial_metadata.mapset SET creation_date = '2024-03-28', publication_date = '2024-03-28', revision_date = '2024-03-28' WHERE country_id = 'BT' AND project_id = 'OTHER';
+
+
+-- unit_of_measure_id
+UPDATE spatial_metadata.mapset m
+SET unit_of_measure_id = p.unit_of_measure_id 
+FROM spatial_metadata.property p
+WHERE m.country_id = 'BT'
+  AND m.unit_of_measure_id IS NULL
+  AND m.property_id = p.property_id;
+
+
+-- title
+UPDATE spatial_metadata.mapset m SET title = t.title
+    FROM (SELECT DISTINCT m.mapset_id, p.name||' ('||coalesce(c.en,'')||' - '||coalesce(p.unit_of_measure_id,'')||' - '||coalesce(l.distance,'')||' '||coalesce(l.distance_uom,'')||' - '||coalesce(m.creation_date::text,'')||')' AS title
+            FROM spatial_metadata.mapset m
+            LEFT JOIN spatial_metadata.property p ON p.property_id = m.property_id
+            LEFT JOIN spatial_metadata.country c ON c.country_id = m.country_id
+            LEFT JOIN spatial_metadata.layer l ON l.mapset_id = m.mapset_id) t
+    WHERE m.mapset_id = t.mapset_id AND m.country_id = 'BT';
 
 
 -- citation
@@ -55,7 +57,7 @@ WHERE m.mapset_id = l.mapset_id AND m.country_id = 'BT';
 -- keywords
 UPDATE spatial_metadata.mapset SET keyword_place = '{Bhutan}'::text[] WHERE country_id = 'BT';
 UPDATE spatial_metadata.mapset m SET keyword_theme = t.keyword_theme
-    FROM (SELECT DISTINCT property_id, keyword_theme FROM spatial_metadata.mapset WHERE keyword_theme IS NOT NULL) t
+    FROM (SELECT DISTINCT property_id, keyword_theme FROM spatial_metadata.mapset WHERE keyword_theme IS NOT NULL AND country_id = 'PH') t
     WHERE m.country_id = 'BT' AND m.property_id = t.property_id;
 
 
@@ -70,7 +72,7 @@ UPDATE spatial_metadata.mapset SET time_period_end = '2023-12-31' WHERE country_
 
 -- lineage
 UPDATE spatial_metadata.mapset m SET lineage_statement = t.lineage_statement
-    FROM (SELECT DISTINCT project_id, lineage_statement FROM spatial_metadata.mapset WHERE lineage_statement IS NOT NULL) t
+    FROM (SELECT DISTINCT project_id, lineage_statement FROM spatial_metadata.mapset WHERE lineage_statement IS NOT NULL AND country_id = 'PH') t
     WHERE m.country_id = 'BT' AND m.project_id = t.project_id;
 
 

@@ -344,6 +344,7 @@ CREATE TABLE spatial_metadata.property (
   property_id text NOT NULL,
   name text,
   property_phys_chem_id text,
+  unit_of_measure_id text,
   min real,
   max real,
   property_type text NOT NULL,
@@ -497,6 +498,7 @@ ALTER TABLE spatial_metadata.mapset ADD FOREIGN KEY (property_id) REFERENCES spa
 ALTER TABLE spatial_metadata.mapset ADD FOREIGN KEY (unit_of_measure_id) REFERENCES soil_data.unit_of_measure(unit_of_measure_id) ON UPDATE CASCADE ON DELETE NO ACTION;
 ALTER TABLE spatial_metadata.project ADD FOREIGN KEY (country_id) REFERENCES spatial_metadata.country(country_id) ON UPDATE CASCADE ON DELETE NO ACTION;
 ALTER TABLE spatial_metadata.property ADD FOREIGN KEY (property_phys_chem_id) REFERENCES soil_data.property_phys_chem(property_phys_chem_id) ON UPDATE CASCADE ON DELETE NO ACTION;
+ALTER TABLE spatial_metadata.property ADD FOREIGN KEY (unit_of_measure_id) REFERENCES soil_data.unit_of_measure(unit_of_measure_id) ON UPDATE CASCADE ON DELETE NO ACTION;
 
 
 --------------------------

@@ -8,8 +8,8 @@ def export_style(output, country_id, project_id):
 
     # symbology
     sql = f"""  SELECT DISTINCT p.property_id, p.sld
-                FROM metadata.mapset m
-                LEFT JOIN metadata.property p ON p.property_id = m.property_id
+                FROM spatial_metadata.mapset m
+                LEFT JOIN spatial_metadata.property p ON p.property_id = m.property_id
                 WHERE p.sld IS NOT NULL 
                   AND m.country_id = '{country_id}'
                   AND m.project_id = '{project_id}'
@@ -25,7 +25,7 @@ def export_style(output, country_id, project_id):
 
     # metadata
     sql = f"""  SELECT mapset_id, xml
-                FROM metadata.mapset
+                FROM spatial_metadata.mapset
                 WHERE xml IS NOT NULL 
                   AND country_id = '{country_id}'
                   AND project_id = '{project_id}'
@@ -41,8 +41,8 @@ def export_style(output, country_id, project_id):
     
     # mapfile
     sql = f"""  SELECT l.layer_id, l.map
-                FROM metadata.mapset m
-                LEFT JOIN metadata.layer l ON l.mapset_id = m.mapset_id  
+                FROM spatial_metadata.mapset m
+                LEFT JOIN spatial_metadata.layer l ON l.mapset_id = m.mapset_id  
                 WHERE l.map IS NOT NULL 
                   AND m.country_id = '{country_id}'
                   AND m.project_id = '{project_id}'

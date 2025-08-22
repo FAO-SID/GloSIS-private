@@ -39,7 +39,7 @@ def bake_xml(country_id, project_id, template, output):
     
     # iterate variables
     sql = f'''SELECT mapset_id
-              FROM metadata.mapset
+              FROM spatial_metadata.mapset
               WHERE country_id = '{country_id}'
                 AND project_id = '{project_id}'
               ORDER BY mapset_id
@@ -49,7 +49,7 @@ def bake_xml(country_id, project_id, template, output):
     for row in rows:
         mapset_id = row[0]
     
-        # read metadata from table metadata.mapset
+        # read metadata from table spatial_metadata.mapset
         sql = f'''SELECT parent_identifier,
                         file_identifier,
                         language_code, 
@@ -82,7 +82,7 @@ def bake_xml(country_id, project_id, template, output):
                         lineage_statement, 
                         lineage_source_uuidref, 
                         lineage_source_title
-                 FROM metadata.mapset 
+                 FROM spatial_metadata.mapset 
                  WHERE mapset_id='{mapset_id}' '''
         cur.execute(sql)
         row = cur.fetchone()
@@ -119,7 +119,7 @@ def bake_xml(country_id, project_id, template, output):
         lineage_statement = 'UNKNOWN' if row[29] == None else str(row[29])
 
 
-        # read metadata from table metadata.layer
+        # read metadata from table spatial_metadata.layer
         sql = f'''SELECT DISTINCT
                         reference_system_identifier_code,
                         distance,
@@ -129,7 +129,7 @@ def bake_xml(country_id, project_id, template, output):
                         south_bound_latitude, 
                         north_bound_latitude, 
                         distribution_format
-                 FROM metadata.layer 
+                 FROM spatial_metadata.layer 
                  WHERE mapset_id='{mapset_id}' '''
         cur.execute(sql)
         row = cur.fetchone()
@@ -271,14 +271,15 @@ def bake_xml(country_id, project_id, template, output):
                         o.facsimile,
                         i.individual_id, 
                         i.email, 
-                        v.tag, 
-                        v.role, 
-                        v.position
-                 FROM metadata.ver_x_org_x_ind v
-                 LEFT JOIN metadata.organisation o ON o.organisation_id = v.organisation_id
-                 LEFT JOIN metadata.individual i ON i.individual_id = v.individual_id
-                 WHERE v.mapset_id ='{mapset_id}'
-                   AND v.tag = 'contact'
+                        x.tag, 
+                        x.role, 
+                        x.position
+                 FROM spatial_metadata.proj_x_org_x_ind x
+                 LEFT JOIN spatial_metadata.organisation o ON o.organisation_id = x.organisation_id
+                 LEFT JOIN spatial_metadata.individual i ON i.individual_id = x.individual_id
+                 LEFT JOIN spatial_metadata.mapset m ON x.country_id = m.country_id AND x.project_id = m.project_id
+                 WHERE m.mapset_id ='{mapset_id}'
+                   AND x.tag = 'contact'
                  ORDER BY i.individual_id'''
         cur.execute(sql)
         rows = cur.fetchall()
@@ -367,14 +368,15 @@ def bake_xml(country_id, project_id, template, output):
                         o.facsimile,
                         i.individual_id, 
                         i.email, 
-                        v.tag, 
-                        v.role, 
-                        v.position
-                 FROM metadata.ver_x_org_x_ind v
-                 LEFT JOIN metadata.organisation o ON o.organisation_id = v.organisation_id
-                 LEFT JOIN metadata.individual i ON i.individual_id = v.individual_id
-                 WHERE v.mapset_id ='{mapset_id}'
-                   AND v.tag = 'pointOfContact'
+                        x.tag, 
+                        x.role, 
+                        x.position
+                 FROM spatial_metadata.proj_x_org_x_ind x
+                 LEFT JOIN spatial_metadata.organisation o ON o.organisation_id = x.organisation_id
+                 LEFT JOIN spatial_metadata.individual i ON i.individual_id = x.individual_id
+                 LEFT JOIN spatial_metadata.mapset m ON x.country_id = m.country_id AND x.project_id = m.project_id
+                 WHERE m.mapset_id ='{mapset_id}'
+                   AND x.tag = 'pointOfContact'
                  ORDER BY i.individual_id'''
         cur.execute(sql)
         rows = cur.fetchall()
@@ -453,7 +455,7 @@ def bake_xml(country_id, project_id, template, output):
         # online_resource
         online_resource = ''
         sql = f'''SELECT url, protocol, url_name
-                 FROM metadata.url
+                 FROM spatial_metadata.url
                  WHERE mapset_id='{mapset_id}'
                    AND protocol IN ('OGC:WMS','OGC:WMTS','WWW:LINK-1.0-http--link', 'WWW:LINK-1.0-http--related')
                  ORDER BY protocol, url'''
@@ -543,14 +545,14 @@ def bake_xml(country_id, project_id, template, output):
 
 
         # write xml in db
-        sql = f"UPDATE metadata.mapset SET xml = '{multireplace(read_file, replace)}' WHERE mapset_id = '{mapset_id}'"
+        sql = f"UPDATE spatial_metadata.mapset SET xml = '{multireplace(read_file, replace)}' WHERE mapset_id = '{mapset_id}'"
         cur.execute(sql)
 
         
         # close files
         open_file.close
         # write_file.close
-        # print(mapset_id)
+        print(mapset_id)
 
 
     # close database connection

@@ -59,7 +59,7 @@ def spatial_data_scan(rootdir):
                 cur.execute(sql)
 
                 # insert mapset and layer
-                # print (file_name)
+                print (file_name)
                 sql = f"INSERT INTO spatial_metadata.mapset(country_id, project_id, property_id, mapset_id) VALUES('{country_id}', '{project_id}', '{property_id}', '{mapset_id}') ON CONFLICT (mapset_id) DO NOTHING"
                 cur.execute(sql)
                 dimension_des = layer_id.split('-')[4] + '-' + layer_id.split('-')[5]
