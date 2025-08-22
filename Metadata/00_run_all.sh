@@ -16,6 +16,7 @@ rm $PROJECT_DIR/GloSIS/glosis-datacube/BT/tmp/*
 eval "$(conda shell.bash hook)"
 conda activate db
 psql -h localhost -p 5432 -d iso19139 -U sis -c "DELETE FROM spatial_metadata.project WHERE country_id = 'BT'"
+psql -h localhost -p 5432 -d iso19139 -U sis -f $PROJECT_DIR/GloSIS-private/Metadata/01_add_property.sql
 python $PROJECT_DIR/GloSIS-private/Metadata/02_scan.py
 rm $PROJECT_DIR/GloSIS/glosis-datacube/BT/output/*.tif.aux.xml
 psql -h localhost -p 5432 -d iso19139 -U sis -f $PROJECT_DIR/GloSIS-private/Metadata/03_add_metadata_BT.sql
