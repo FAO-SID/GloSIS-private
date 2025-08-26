@@ -20,3 +20,6 @@ eval "$(conda shell.bash hook)"
 conda activate db
 python $PROJECT_DIR/2_xml2db.py
 
+(paper_maps, e1c1b68a-3c61-464b-9748-6ef9821ce0d0, depth, null, e1c1b68a-3c61-464b-9748-6ef9821ce0d0, eng, ISO 19115:2003/19139, 1.0, EPSG, SOLAW Vector Data, null, null, null, null, null, null, doi, 
+The ISO19115 metadata standard solaw is the preferred metadata s..., onGoing, asNeeded, null, {solaw}, {World}, {"Soil science"}, copyright, , null, grid, mapDigital, {geoscientificInformation,environment}, null, null, 
+dataset, null, null, null, null)

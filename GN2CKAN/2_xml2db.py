@@ -36,9 +36,11 @@ def extract_data(limit):
 
         # file_identifier
         file_identifier = root.find('.//gmd:fileIdentifier/gco:CharacterString', ns).text
+        group_id = 'paper_maps'
         if file_identifier is not None:
-          sql = f"""INSERT INTO xml2db.group (group_id) VALUES ('{file_identifier}');
-                    INSERT INTO xml2db.mapset (group_id, mapset_id, file_identifier) VALUES ('{file_identifier}', '1', '{file_identifier}') """
+          sql = f"""INSERT INTO xml2db.group (group_id) VALUES ('{group_id}') ON CONFLICT (group_id) DO NOTHING;
+                    INSERT INTO xml2db.mapset (group_id, mapset_id, file_identifier) VALUES ('{group_id}', '{file_identifier}', '{file_identifier}');
+                    INSERT INTO xml2db.layer (mapset_id, layer_id) VALUES ('{file_identifier}', '{file_identifier}') """
           cur.execute(sql)
 
         # verbose
@@ -49,13 +51,13 @@ def extract_data(limit):
         for elem in root.findall('.//gmd:language/gmd:LanguageCode', ns):
           language_code = elem.attrib['codeListValue']
           if language_code is not None:
-            sql = f"UPDATE xml2db.mapset SET language_code = '{language_code}' WHERE group_id = '{file_identifier}'"
+            sql = f"UPDATE xml2db.mapset SET language_code = '{language_code}' WHERE mapset_id = '{file_identifier}'"
             cur.execute(sql)
         
         for elem in root.findall('.//gmd:language/gco:CharacterString', ns):
           language_code = elem.text
           if language_code is not None:
-            sql = f"UPDATE xml2db.mapset SET language_code = '{language_code}' WHERE group_id = '{file_identifier}' AND language_code IS NULL"
+            sql = f"UPDATE xml2db.mapset SET language_code = '{language_code}' WHERE mapset_id = '{file_identifier}' AND language_code IS NULL"
             cur.execute(sql)
 
         # ResponsibleParty
@@ -131,7 +133,7 @@ def extract_data(limit):
             url_name = elem.find('.//gmd:name/gmd:CharacterString', ns).text # ERROR in metadata! it should be gco:CharacterString
           else:
             url_name = 'ERROR: no name!'
-          sql = f"INSERT INTO xml2db.url (group_id, mapset_id, url, protocol, url_name) VALUES ('{file_identifier}', '1', '{url}', '{protocol}', '{url_name}')"
+          sql = f"INSERT INTO xml2db.url (mapset_id, url, protocol, url_name) VALUES ('{file_identifier}', '{url}', '{protocol}', '{url_name}')"
           cur.execute(sql)
 
         # metadata_standard_name
@@ -152,7 +154,7 @@ def extract_data(limit):
         for elem in root.findall('.//gmd:referenceSystemInfo/gmd:MD_ReferenceSystem/gmd:referenceSystemIdentifier/gmd:RS_Identifier/gmd:code/gco:CharacterString', ns):
           reference_system_identifier_code = elem.text
           if reference_system_identifier_code is not None:
-            sql = f"UPDATE xml2db.mapset SET reference_system_identifier_code = '{reference_system_identifier_code}' WHERE file_identifier = '{file_identifier}'"
+            sql = f"UPDATE xml2db.layer SET reference_system_identifier_code = '{reference_system_identifier_code}' WHERE layer_id = '{file_identifier}'"
             cur.execute(sql)
 
         # reference_system_identifier_code_space
@@ -166,15 +168,22 @@ def extract_data(limit):
         for elem in root.findall('.//gmd:identificationInfo/gmd:MD_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:title/gco:CharacterString', ns):
           title = elem.text
           if title is not None:
-            sql = f"""UPDATE xml2db.group SET dataset_name = $${title}$$ WHERE group_id = '{file_identifier}';
-                      UPDATE xml2db.mapset SET title = $${title}$$ WHERE file_identifier = '{file_identifier}' """
+            sql = f"""UPDATE xml2db.mapset SET title = $${title}$$ WHERE file_identifier = '{file_identifier}' """
             cur.execute(sql)
 
         # creation_date, publication_date, revision_date
         for elem in root.findall('.//gmd:identificationInfo/gmd:MD_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:date/gmd:CI_Date', ns):
-          the_date  = elem.find('.//gmd:date/gco:Date', ns).text
+          # the_date  = elem.find('.//gmd:date/gco:DateTime', ns).text
+          
+          date_elem = elem.find('.//gmd:date/gco:DateTime', ns)
+          if date_elem is not None:
+              the_date = date_elem.text
+          else:
+              # Fall back to gco:Date
+              date_elem = elem.find('.//gmd:date/gco:Date', ns)
+              the_date = date_elem.text if date_elem is not None else None
+          
           what_date = elem.find('.//gmd:dateType/gmd:CI_DateTypeCode', ns).attrib['codeListValue']
-          # if the_date is not None and the_date not in ['None', 'Invalid Date', 'NaN', '2015']:
           if the_date is not None:
             if what_date == 'creation':
               sql = f"UPDATE xml2db.mapset SET creation_date = '{the_date}' WHERE file_identifier = '{file_identifier}'"
@@ -190,28 +199,28 @@ def extract_data(limit):
         for elem in root.findall('.//gmd:identificationInfo/gmd:MD_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:edition/gco:CharacterString', ns):
           edition = elem.text
           if edition is not None:
-            sql = f"UPDATE xml2db.mapset SET edition = '{edition}' WHERE group_id = '{file_identifier}' "
+            sql = f"UPDATE xml2db.mapset SET edition = '{edition}' WHERE mapset_id = '{file_identifier}' "
             cur.execute(sql)
 
         # citation_rs_identifier_code
         for elem in root.findall('.//gmd:identificationInfo/gmd:MD_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:identifier/gmd:RS_Identifier/gmd:code/gco:CharacterString', ns):
           citation_rs_identifier_code = elem.text
           if citation_rs_identifier_code is not None:
-            sql = f"UPDATE xml2db.mapset SET citation_rs_identifier_code = '{citation_rs_identifier_code}' WHERE group_id = '{file_identifier}'"
+            sql = f"UPDATE xml2db.mapset SET citation_rs_identifier_code = '{citation_rs_identifier_code}' WHERE mapset_id = '{file_identifier}'"
             cur.execute(sql)
 
         # citation_rs_identifier_code_space
         for elem in root.findall('.//gmd:identificationInfo/gmd:MD_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:identifier/gmd:RS_Identifier/gmd:codeSpace/gco:CharacterString', ns):
           citation_rs_identifier_code_space = elem.text
           if citation_rs_identifier_code_space is not None:
-            sql = f"UPDATE xml2db.mapset SET citation_rs_identifier_code_space = '{citation_rs_identifier_code_space}' WHERE group_id = '{file_identifier}'"
+            sql = f"UPDATE xml2db.mapset SET citation_rs_identifier_code_space = '{citation_rs_identifier_code_space}' WHERE mapset_id = '{file_identifier}'"
             cur.execute(sql)
 
         # citation_md_identifier_code
         for elem in root.findall('.//gmd:identificationInfo/gmd:MD_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:identifier/gmd:MD_Identifier/gmd:code/gco:CharacterString', ns):
           citation_md_identifier_code = elem.text
           if citation_md_identifier_code is not None:
-            sql = f"UPDATE xml2db.mapset SET citation_md_identifier_code = '{citation_md_identifier_code}' WHERE group_id = '{file_identifier}'"
+            sql = f"UPDATE xml2db.mapset SET citation_md_identifier_code = '{citation_md_identifier_code}' WHERE mapset_id = '{file_identifier}'"
             cur.execute(sql)
 
         # abstract
@@ -347,35 +356,35 @@ def extract_data(limit):
         for elem in root.findall('.//gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_GeographicBoundingBox/gmd:westBoundLongitude/gco:Decimal', ns):
           west_bound_longitude = elem.text
           if west_bound_longitude is not None:
-            sql = f"UPDATE xml2db.mapset SET west_bound_longitude = '{west_bound_longitude}' WHERE file_identifier = '{file_identifier}'"
+            sql = f"UPDATE xml2db.layer SET west_bound_longitude = '{west_bound_longitude}' WHERE layer_id = '{file_identifier}'"
             cur.execute(sql)
 
         # east_bound_longitude
         for elem in root.findall('.//gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_GeographicBoundingBox/gmd:eastBoundLongitude/gco:Decimal', ns):
           east_bound_longitude = elem.text
           if east_bound_longitude is not None:
-            sql = f"UPDATE xml2db.mapset SET east_bound_longitude = '{east_bound_longitude}' WHERE file_identifier = '{file_identifier}'"
+            sql = f"UPDATE xml2db.layer SET east_bound_longitude = '{east_bound_longitude}' WHERE layer_id = '{file_identifier}'"
             cur.execute(sql)
 
         # south_bound_latitude
         for elem in root.findall('.//gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_GeographicBoundingBox/gmd:southBoundLatitude/gco:Decimal', ns):
           south_bound_latitude = elem.text
           if south_bound_latitude is not None:
-            sql = f"UPDATE xml2db.mapset SET south_bound_latitude = '{south_bound_latitude}' WHERE file_identifier = '{file_identifier}'"
+            sql = f"UPDATE xml2db.layer SET south_bound_latitude = '{south_bound_latitude}' WHERE layer_id = '{file_identifier}'"
             cur.execute(sql)
 
         # north_bound_latitude
         for elem in root.findall('.//gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_GeographicBoundingBox/gmd:northBoundLatitude/gco:Decimal', ns):
           north_bound_latitude = elem.text
           if north_bound_latitude is not None:
-            sql = f"UPDATE xml2db.mapset SET north_bound_latitude = '{north_bound_latitude}' WHERE file_identifier = '{file_identifier}'"
+            sql = f"UPDATE xml2db.layer SET north_bound_latitude = '{north_bound_latitude}' WHERE layer_id = '{file_identifier}'"
             cur.execute(sql)
 
         # distribution_format
         for elem in root.findall('.//gmd:distributionInfo/gmd:MD_Distribution/gmd:distributionFormat/gmd:MD_Format/gmd:name/gco:CharacterString', ns):
           distribution_format = elem.text
           if distribution_format is not None:
-            sql = f"UPDATE xml2db.mapset SET distribution_format = '{distribution_format}' WHERE file_identifier = '{file_identifier}'"
+            sql = f"UPDATE xml2db.layer SET distribution_format = '{distribution_format}' WHERE layer_id = '{file_identifier}'"
             cur.execute(sql)
 
         # scope_code

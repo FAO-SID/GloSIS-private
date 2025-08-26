@@ -31,9 +31,9 @@ CREATE TABLE xml2db.mapset (
   reference_system_identifier_code_space text DEFAULT 'EPSG',
   title text,
   unit_of_measure_id text,
-  creation_date date,
-  publication_date date,
-  revision_date date,
+  creation_date text,
+  publication_date text,
+  revision_date text,
   edition text,
   citation_md_identifier_code text,
   citation_md_identifier_code_space text DEFAULT 'doi',
@@ -50,8 +50,8 @@ CREATE TABLE xml2db.mapset (
   spatial_representation_type_code text DEFAULT 'grid',
   presentation_form text DEFAULT 'mapDigital',
   topic_category text[] DEFAULT '{geoscientificInformation,environment}'::text[],
-  time_period_begin date,
-  time_period_end date,
+  time_period_begin text,
+  time_period_end text,
   scope_code text DEFAULT 'dataset',
   lineage_statement text,
   lineage_source_uuidref text,
@@ -73,7 +73,7 @@ GRANT SELECT ON TABLE xml2db.mapset TO sis_r;
 CREATE TABLE xml2db.layer (
   mapset_id text NOT NULL,
   dimension_des text,
-  file_path text NOT NULL,
+  file_path text NULL,
   layer_id text NOT NULL,
   file_extension text,
   file_size integer,
@@ -156,7 +156,7 @@ CREATE TABLE xml2db.url (
   protocol text NOT NULL,
   url text NOT NULL,
   url_name text NOT NULL
-  CONSTRAINT url_protocol_check CHECK ((protocol = ANY (ARRAY['OGC:WMS','OGC:WMTS','WWW:LINK-1.0-http--link', 'WWW:LINK-1.0-http--related'])))
+  CONSTRAINT url_protocol_check CHECK ((protocol = ANY (ARRAY['OGC:WMS','OGC:WMTS','WWW:LINK-1.0-http--link', 'WWW:LINK-1.0-http--related', 'WWW:DOWNLOAD-1.0-http--download', 'OGC:WMS-1.1.1-http-get-map'])))
 );
 ALTER TABLE xml2db.url OWNER TO sis;
 GRANT SELECT ON TABLE xml2db.url TO sis_r;
