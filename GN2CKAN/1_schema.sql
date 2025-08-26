@@ -1,8 +1,8 @@
--- DROP SCHEMA IF EXISTS gn2ckan CASCADE;
-CREATE SCHEMA gn2ckan;
-ALTER SCHEMA gn2ckan OWNER TO sis;
-COMMENT ON SCHEMA gn2ckan IS 'Schema for migrating FAO soil metadata from GeoNetwork to CKAN';
-GRANT USAGE ON SCHEMA gn2ckan TO sis_r;
+DROP SCHEMA IF EXISTS xml2db CASCADE;
+CREATE SCHEMA xml2db;
+ALTER SCHEMA xml2db OWNER TO sis;
+COMMENT ON SCHEMA xml2db IS 'Schema for migrating FAO soil metadata from GeoNetwork to CKAN';
+GRANT USAGE ON SCHEMA xml2db TO sis_r;
 
 
 --------------------------
@@ -10,16 +10,16 @@ GRANT USAGE ON SCHEMA gn2ckan TO sis_r;
 --------------------------
 
 
-CREATE TABLE gn2ckan.group (
+CREATE TABLE xml2db.group (
   group_id text NOT NULL,
   group_name text,
   group_description text
 );
-ALTER TABLE gn2ckan.group OWNER TO sis;
-GRANT SELECT ON TABLE gn2ckan.group TO sis_r;
+ALTER TABLE xml2db.group OWNER TO sis;
+GRANT SELECT ON TABLE xml2db.group TO sis_r;
 
 
-CREATE TABLE gn2ckan.mapset (
+CREATE TABLE xml2db.mapset (
   group_id text NOT NULL,
   mapset_id text NOT NULL,
   dimension text DEFAULT 'depth',
@@ -66,11 +66,11 @@ CREATE TABLE gn2ckan.mapset (
   CONSTRAINT mapset_spatial_representation_type_code_check CHECK ((spatial_representation_type_code = ANY (ARRAY['grid', 'vector', 'textTable', 'tin', 'stereoModel', 'video']))),
   CONSTRAINT mapset_presentation_form_check CHECK ((presentation_form = ANY (ARRAY['mapDigital', 'tableDigital', 'mapHardcopy', 'atlasHardcopy'])))
 );
-ALTER TABLE gn2ckan.mapset OWNER TO sis;
-GRANT SELECT ON TABLE gn2ckan.mapset TO sis_r;
+ALTER TABLE xml2db.mapset OWNER TO sis;
+GRANT SELECT ON TABLE xml2db.mapset TO sis_r;
 
 
-CREATE TABLE gn2ckan.layer (
+CREATE TABLE xml2db.layer (
   mapset_id text NOT NULL,
   dimension_des text,
   file_path text NOT NULL,
@@ -110,11 +110,11 @@ CREATE TABLE gn2ckan.layer (
   map text,
   CONSTRAINT layer_distance_uom_check CHECK ((distance_uom = ANY (ARRAY['m', 'km', 'deg'])))
 );
-ALTER TABLE gn2ckan.layer OWNER TO sis;
-GRANT SELECT ON TABLE gn2ckan.layer TO sis_r;
+ALTER TABLE xml2db.layer OWNER TO sis;
+GRANT SELECT ON TABLE xml2db.layer TO sis_r;
 
 
-CREATE TABLE gn2ckan.mapset_x_org_x_ind (
+CREATE TABLE xml2db.mapset_x_org_x_ind (
   mapset_id text NOT NULL,
   organisation_id text NOT NULL,
   individual_id text,
@@ -124,11 +124,11 @@ CREATE TABLE gn2ckan.mapset_x_org_x_ind (
   CONSTRAINT mapset_x_org_x_ind_tag_check CHECK ((tag = ANY (ARRAY['contact', 'pointOfContact']))),
   CONSTRAINT mapset_x_org_x_ind_role_check CHECK ((role = ANY (ARRAY['author', 'custodian', 'distributor', 'originator', 'owner', 'pointOfContact', 'principalInvestigator', 'processor', 'publisher', 'resourceProvider', 'user'])))
 );
-ALTER TABLE gn2ckan.mapset_x_org_x_ind OWNER TO sis;
-GRANT SELECT ON TABLE gn2ckan.mapset_x_org_x_ind TO sis_r;
+ALTER TABLE xml2db.mapset_x_org_x_ind OWNER TO sis;
+GRANT SELECT ON TABLE xml2db.mapset_x_org_x_ind TO sis_r;
 
 
-CREATE TABLE gn2ckan.organisation (
+CREATE TABLE xml2db.organisation (
   organisation_id text NOT NULL,
   url text,
   email text,
@@ -139,42 +139,41 @@ CREATE TABLE gn2ckan.organisation (
   phone text,
   facsimile text
 );
-ALTER TABLE gn2ckan.organisation OWNER TO sis;
-GRANT SELECT ON TABLE gn2ckan.organisation TO sis_r;
+ALTER TABLE xml2db.organisation OWNER TO sis;
+GRANT SELECT ON TABLE xml2db.organisation TO sis_r;
 
 
-CREATE TABLE gn2ckan.individual (
+CREATE TABLE xml2db.individual (
   individual_id text NOT NULL,
   email text    
 );
-ALTER TABLE gn2ckan.individual OWNER TO sis;
-GRANT SELECT ON TABLE gn2ckan.individual TO sis_r;
+ALTER TABLE xml2db.individual OWNER TO sis;
+GRANT SELECT ON TABLE xml2db.individual TO sis_r;
 
 
-CREATE TABLE gn2ckan.url (
+CREATE TABLE xml2db.url (
   mapset_id text NOT NULL,
   protocol text NOT NULL,
   url text NOT NULL,
   url_name text NOT NULL
   CONSTRAINT url_protocol_check CHECK ((protocol = ANY (ARRAY['OGC:WMS','OGC:WMTS','WWW:LINK-1.0-http--link', 'WWW:LINK-1.0-http--related'])))
 );
-ALTER TABLE gn2ckan.url OWNER TO sis;
-GRANT SELECT ON TABLE gn2ckan.url TO sis_r;
+ALTER TABLE xml2db.url OWNER TO sis;
+GRANT SELECT ON TABLE xml2db.url TO sis_r;
 
 
 --------------------------
 --     PRIMARY KEY      --
 --------------------------
 
-ALTER TABLE gn2ckan.country ADD PRIMARY KEY (country_id);
-ALTER TABLE gn2ckan.group ADD PRIMARY KEY (group_id);
-ALTER TABLE gn2ckan.mapset ADD PRIMARY KEY (mapset_id);
-ALTER TABLE gn2ckan.mapset ADD UNIQUE (file_identifier);
-ALTER TABLE gn2ckan.layer ADD PRIMARY KEY (layer_id);
-ALTER TABLE gn2ckan.mapset_x_org_x_ind ADD PRIMARY KEY (country_id, group_id, organisation_id, individual_id, position, tag, role);
-ALTER TABLE gn2ckan.organisation ADD PRIMARY KEY (organisation_id);
-ALTER TABLE gn2ckan.individual ADD PRIMARY KEY (individual_id);
-ALTER TABLE gn2ckan.url ADD PRIMARY KEY (mapset_id, protocol, url);
+ALTER TABLE xml2db.group ADD PRIMARY KEY (group_id);
+ALTER TABLE xml2db.mapset ADD PRIMARY KEY (mapset_id);
+ALTER TABLE xml2db.mapset ADD UNIQUE (file_identifier);
+ALTER TABLE xml2db.layer ADD PRIMARY KEY (layer_id);
+ALTER TABLE xml2db.mapset_x_org_x_ind ADD PRIMARY KEY (mapset_id, organisation_id, individual_id, position, tag, role);
+ALTER TABLE xml2db.organisation ADD PRIMARY KEY (organisation_id);
+ALTER TABLE xml2db.individual ADD PRIMARY KEY (individual_id);
+ALTER TABLE xml2db.url ADD PRIMARY KEY (mapset_id, protocol, url);
 
 
 --------------------------
@@ -182,9 +181,9 @@ ALTER TABLE gn2ckan.url ADD PRIMARY KEY (mapset_id, protocol, url);
 --------------------------
 
 
-ALTER TABLE gn2ckan.mapset_x_org_x_ind ADD FOREIGN KEY (mapset_id) REFERENCES gn2ckan.mapset(mapset_id) ON UPDATE CASCADE ON DELETE CASCADE;
-ALTER TABLE gn2ckan.mapset_x_org_x_ind ADD FOREIGN KEY (organisation_id) REFERENCES gn2ckan.organisation(organisation_id) ON UPDATE CASCADE ON DELETE CASCADE;
-ALTER TABLE gn2ckan.mapset_x_org_x_ind ADD FOREIGN KEY (individual_id) REFERENCES gn2ckan.individual(individual_id) ON UPDATE CASCADE ON DELETE CASCADE;
-ALTER TABLE gn2ckan.url ADD FOREIGN KEY (mapset_id) REFERENCES gn2ckan.mapset(mapset_id) ON UPDATE CASCADE ON DELETE CASCADE;
-ALTER TABLE gn2ckan.layer ADD FOREIGN KEY (mapset_id) REFERENCES gn2ckan.mapset(mapset_id) ON UPDATE CASCADE ON DELETE CASCADE;
-ALTER TABLE gn2ckan.mapset ADD FOREIGN KEY (group_id) REFERENCES gn2ckan.group(group_id) ON UPDATE CASCADE ON DELETE CASCADE;
+ALTER TABLE xml2db.mapset_x_org_x_ind ADD FOREIGN KEY (mapset_id) REFERENCES xml2db.mapset(mapset_id) ON UPDATE CASCADE ON DELETE CASCADE;
+ALTER TABLE xml2db.mapset_x_org_x_ind ADD FOREIGN KEY (organisation_id) REFERENCES xml2db.organisation(organisation_id) ON UPDATE CASCADE ON DELETE CASCADE;
+ALTER TABLE xml2db.mapset_x_org_x_ind ADD FOREIGN KEY (individual_id) REFERENCES xml2db.individual(individual_id) ON UPDATE CASCADE ON DELETE CASCADE;
+ALTER TABLE xml2db.url ADD FOREIGN KEY (mapset_id) REFERENCES xml2db.mapset(mapset_id) ON UPDATE CASCADE ON DELETE CASCADE;
+ALTER TABLE xml2db.layer ADD FOREIGN KEY (mapset_id) REFERENCES xml2db.mapset(mapset_id) ON UPDATE CASCADE ON DELETE CASCADE;
+ALTER TABLE xml2db.mapset ADD FOREIGN KEY (group_id) REFERENCES xml2db.group(group_id) ON UPDATE CASCADE ON DELETE CASCADE;
