@@ -20,7 +20,7 @@ DB_USER="glosis"
 # sudo snap install google-cloud-cli
 
 
-Copy MAPs
+# Copy MAPs
 psql -h "$DB_HOST" -p "$DB_PORT" -d "$DB_NAME" -U "$DB_USER" -t -A -F"|" -c \
     "SELECT m.mapset_id, l.layer_id||'.tif'
     FROM metadata.mapset m
