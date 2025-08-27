@@ -548,7 +548,7 @@ conn = psycopg2.connect("host='localhost' port='5432' dbname='iso19139' user='gl
 cur = conn.cursor()
 
 # run function
-template = '/home/carva014/Work/Code/FAO/GloSIS-private/GN2CKAN/3_template.xml'
+template = '/home/carva014/Work/Code/FAO/GloSIS-private/GN2CKAN/template.xml'
 output = '/home/carva014/Downloads/FAO/Metadata/output'
 group_id = 'paper_maps'
 bake_xml(group_id, template, output)
