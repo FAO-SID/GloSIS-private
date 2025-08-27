@@ -9,7 +9,7 @@ from lxml import etree as ET
 #               https://www.edureka.co/blog/python-xml-parser-tutorial/
 
 
-def extract_data(limit):
+def extract_data():
   count = 0
   ns = {'gmd':'http://www.isotc211.org/2005/gmd',
         'gco':'http://www.isotc211.org/2005/gco',
@@ -27,6 +27,10 @@ def extract_data(limit):
       with open(file_path, 'r') as file:
         xml = file.read()
 
+        # verbose
+        count = count + 1
+        print(count,'\t',filename)
+
         # parse xml
         root = ET.fromstring(xml)
         ET.register_namespace('gmd','http://www.isotc211.org/2005/gmd')
@@ -42,10 +46,6 @@ def extract_data(limit):
                     INSERT INTO xml2db.mapset (group_id, mapset_id, file_identifier) VALUES ('{group_id}', '{file_identifier}', '{file_identifier}');
                     INSERT INTO xml2db.layer (mapset_id, layer_id) VALUES ('{file_identifier}', '{file_identifier}') """
           cur.execute(sql)
-
-        # verbose
-        count = count + 1
-        print(count,'\t',file_identifier)
 
         # language_code
         for elem in root.findall('.//gmd:language/gmd:LanguageCode', ns):
@@ -174,7 +174,6 @@ def extract_data(limit):
         # creation_date, publication_date, revision_date
         for elem in root.findall('.//gmd:identificationInfo/gmd:MD_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:date/gmd:CI_Date', ns):
           # the_date  = elem.find('.//gmd:date/gco:DateTime', ns).text
-          
           date_elem = elem.find('.//gmd:date/gco:DateTime', ns)
           if date_elem is not None:
               the_date = date_elem.text
@@ -423,21 +422,12 @@ def extract_data(limit):
 
   print('Finished')
 
-
 # open db connection
 conn = psycopg2.connect("host='localhost' port='5432' dbname='iso19139' user='sis'")
 cur = conn.cursor()
 
-# reset db schema
-sql_file = open('/home/carva014/Work/Code/FAO/GloSIS-private/GN2CKAN/1_schema.sql','r')
-cur.execute(sql_file.read())
-
-# empty tables
-# sql_file = open('/home/carva014/Work/Code/FAO/GloSIS-private/Metadata/db_truncate.sql','r')
-# cur.execute(sql_file.read())
-
 # run function
-extract_data(10)
+extract_data()
 
 # close db connection
 conn.commit()
