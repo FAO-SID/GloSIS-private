@@ -26,30 +26,32 @@ def multireplace(string, replacements):
     return regexp.sub(lambda match: replacements[match.group(0)], string)
 
 
-
-def bake_xml(country_id, project_id, template, output):
+def bake_xml(group_id, template, output):
     
-    print(f'Creating metadata for project {project_id} ...')
+    print(f'Creating metadata for group {group_id} ...')
 
     # vars
     replace = {}
     today = datetime.now()
     revision_date = today.strftime("%Y-%m-%dT%H:%M:%S")
-    
+    count = 0
     
     # iterate variables
     sql = f'''SELECT mapset_id
-              FROM spatial_metadata.mapset
-              WHERE country_id = '{country_id}'
-                AND project_id = '{project_id}'
+              FROM xml2db.mapset
+              WHERE group_id = '{group_id}'
               ORDER BY mapset_id
           '''
     cur.execute(sql)
     rows = cur.fetchall()
     for row in rows:
         mapset_id = row[0]
-    
-        # read metadata from table spatial_metadata.mapset
+
+        # verbose
+        count = count + 1
+        print(count,'\t',mapset_id)
+
+        # read metadata from table xml2db.mapset
         sql = f'''SELECT parent_identifier,
                         file_identifier,
                         language_code, 
@@ -82,7 +84,7 @@ def bake_xml(country_id, project_id, template, output):
                         lineage_statement, 
                         lineage_source_uuidref, 
                         lineage_source_title
-                 FROM spatial_metadata.mapset 
+                 FROM xml2db.mapset 
                  WHERE mapset_id='{mapset_id}' '''
         cur.execute(sql)
         row = cur.fetchone()
@@ -118,8 +120,7 @@ def bake_xml(country_id, project_id, template, output):
         scope_code = 'UNKNOWN' if row[28] == None else str(row[28])
         lineage_statement = 'UNKNOWN' if row[29] == None else str(row[29])
 
-
-        # read metadata from table spatial_metadata.layer
+        # read metadata from table xml2db.layer
         sql = f'''SELECT DISTINCT
                         reference_system_identifier_code,
                         distance,
@@ -129,7 +130,7 @@ def bake_xml(country_id, project_id, template, output):
                         south_bound_latitude, 
                         north_bound_latitude, 
                         distribution_format
-                 FROM spatial_metadata.layer 
+                 FROM xml2db.layer 
                  WHERE mapset_id='{mapset_id}' '''
         cur.execute(sql)
         row = cur.fetchone()
@@ -143,7 +144,6 @@ def bake_xml(country_id, project_id, template, output):
         north_bound_latitude = '0' if row[3] == None else str(row[3]) #W
         distribution_format = 'UNKNOWN' if row[7] == None else str(row[7])
 
-
         # editon
         edition_xml = ''
         if edition != 'UNKNOWN':
@@ -151,7 +151,6 @@ def bake_xml(country_id, project_id, template, output):
           <gmd:edition>
             <gco:CharacterString>{edition}</gco:CharacterString>
           </gmd:edition>'''
-
 
         # # citation_md_identifier uuid
         # citation_md_identifier_uuid_xml = ''
@@ -168,7 +167,6 @@ def bake_xml(country_id, project_id, template, output):
         #    </gmd:MD_Identifier>
         #   </gmd:identifier>'''
 
-
         # citation_md_identifier doi
         citation_md_identifier_doi_xml = ''
         if citation_md_identifier_code != 'UNKNOWN':
@@ -184,7 +182,6 @@ def bake_xml(country_id, project_id, template, output):
            </gmd:MD_Identifier>
           </gmd:identifier>'''
 
-
         # keyword_theme, must be seperated by coma
         keyword_theme_xml = ''
         # if keyword_theme != 'UNKNOWN':
@@ -197,7 +194,6 @@ def bake_xml(country_id, project_id, template, output):
             <gco:CharacterString>{k}</gco:CharacterString>
           </gmd:keyword>'''
             keyword_theme_xml = keyword_theme_xml + keyword_theme_part
-        
         
         # keyword_discipline, must be seperated by coma
         keyword_discipline_xml = ''
@@ -212,7 +208,6 @@ def bake_xml(country_id, project_id, template, output):
           </gmd:keyword>'''
             keyword_discipline_xml = keyword_discipline_xml + keyword_discipline_part
 
-
         # keyword_place, must be seperated by coma
         keyword_place_xml = ''
         # if keyword_place != 'UNKNOWN':
@@ -225,7 +220,6 @@ def bake_xml(country_id, project_id, template, output):
             <gco:CharacterString>{k}</gco:CharacterString>
           </gmd:keyword>'''
             keyword_place_xml = keyword_place_xml + keyword_place_part
-
 
         # deal with vector/grid resolution
         if spatial_representation_type_code == 'grid':
@@ -243,7 +237,6 @@ def bake_xml(country_id, project_id, template, output):
             </gmd:MD_RepresentativeFraction>
           </gmd:equivalentScale>'''
 
-
         # topic_category, must be seperated by coma
         topic_category_xml = ''
         # if topic_category != 'UNKNOWN':
@@ -256,7 +249,6 @@ def bake_xml(country_id, project_id, template, output):
         <gmd:MD_TopicCategoryCode>{k}</gmd:MD_TopicCategoryCode>
       </gmd:topicCategory>'''
             topic_category_xml = topic_category_xml + topic_category_part
-
 
         # contact_ci_responsible_party
         contact_ci_responsible_party_xml = ''
@@ -274,10 +266,10 @@ def bake_xml(country_id, project_id, template, output):
                         x.tag, 
                         x.role, 
                         x.position
-                 FROM spatial_metadata.proj_x_org_x_ind x
-                 LEFT JOIN spatial_metadata.organisation o ON o.organisation_id = x.organisation_id
-                 LEFT JOIN spatial_metadata.individual i ON i.individual_id = x.individual_id
-                 LEFT JOIN spatial_metadata.mapset m ON x.country_id = m.country_id AND x.project_id = m.project_id
+                 FROM xml2db.mapset_x_org_x_ind x
+                 LEFT JOIN xml2db.organisation o ON o.organisation_id = x.organisation_id
+                 LEFT JOIN xml2db.individual i ON i.individual_id = x.individual_id
+                 LEFT JOIN xml2db.mapset m ON x.mapset_id = m.mapset_id
                  WHERE m.mapset_id ='{mapset_id}'
                    AND x.tag = 'contact'
                  ORDER BY i.individual_id'''
@@ -354,7 +346,6 @@ def bake_xml(country_id, project_id, template, output):
   </gmd:contact>'''
             contact_ci_responsible_party_xml = contact_ci_responsible_party_xml + contact_ci_responsible_party_part
         
-        
         # point_of_contact_ci_responsible_party
         point_of_contact_ci_responsible_party_xml = ''
         sql = f'''SELECT o.organisation_id, 
@@ -371,10 +362,10 @@ def bake_xml(country_id, project_id, template, output):
                         x.tag, 
                         x.role, 
                         x.position
-                 FROM spatial_metadata.proj_x_org_x_ind x
-                 LEFT JOIN spatial_metadata.organisation o ON o.organisation_id = x.organisation_id
-                 LEFT JOIN spatial_metadata.individual i ON i.individual_id = x.individual_id
-                 LEFT JOIN spatial_metadata.mapset m ON x.country_id = m.country_id AND x.project_id = m.project_id
+                 FROM xml2db.mapset_x_org_x_ind x
+                 LEFT JOIN xml2db.organisation o ON o.organisation_id = x.organisation_id
+                 LEFT JOIN xml2db.individual i ON i.individual_id = x.individual_id
+                 LEFT JOIN xml2db.mapset m ON x.mapset_id = m.mapset_id
                  WHERE m.mapset_id ='{mapset_id}'
                    AND x.tag = 'pointOfContact'
                  ORDER BY i.individual_id'''
@@ -451,11 +442,10 @@ def bake_xml(country_id, project_id, template, output):
           </gmd:pointOfContact>'''
             point_of_contact_ci_responsible_party_xml = point_of_contact_ci_responsible_party_xml + point_of_contact_ci_responsible_party_part
         
-        
         # online_resource
         online_resource = ''
         sql = f'''SELECT url, protocol, url_name
-                 FROM spatial_metadata.url
+                 FROM xml2db.url
                  WHERE mapset_id='{mapset_id}'
                    AND protocol IN ('OGC:WMS','OGC:WMTS','WWW:LINK-1.0-http--link', 'WWW:LINK-1.0-http--related')
                  ORDER BY protocol, url'''
@@ -493,7 +483,6 @@ def bake_xml(country_id, project_id, template, output):
             </gmd:CI_OnlineResource>
           </gmd:onLine>'''
             online_resource = online_resource + online_resource_part
-        
         
         # fill dicionary
         replace['***file_identifier***'] = file_identifier
@@ -536,46 +525,36 @@ def bake_xml(country_id, project_id, template, output):
         replace['***scope_code***'] = scope_code
         replace['***lineage_statement***'] = lineage_statement
         
-
         # write xml to file
         open_file = open(template, 'r')
         read_file = open_file.read()
-        # write_file = open(output+'/%s.xml' % mapset_id,'w')
-        # write_file.write(multireplace(read_file, replace))
-
+        write_file = open(output+'/%s.xml' % mapset_id,'w')
+        write_file.write(multireplace(read_file, replace))
 
         # write xml in db
-        sql = f"UPDATE spatial_metadata.mapset SET xml = '{multireplace(read_file, replace)}' WHERE mapset_id = '{mapset_id}'"
+        sql = f"UPDATE xml2db.mapset SET xml = $${multireplace(read_file, replace)}$$ WHERE mapset_id = '{mapset_id}'"
         cur.execute(sql)
 
-        
         # close files
         open_file.close
-        # write_file.close
-        print(mapset_id)
-
+        write_file.close
 
     # close database connection
     conn.commit()
     return
 
-
 # open db connection
 conn = psycopg2.connect("host='localhost' port='5432' dbname='iso19139' user='glosis'")
 cur = conn.cursor()
 
-
 # run function
-template='/home/carva014/Work/Code/FAO/GloSIS-private/Metadata/template.xml'
-output='/home/carva014/Work/Code/FAO/GloSIS/glosis-datacube/BT/output'
-country_id='BT'
-bake_xml(country_id, 'GSAS', template, output)
-bake_xml(country_id, 'GSOC', template, output)
-bake_xml(country_id, 'GSNM', template, output)
-bake_xml(country_id, 'OTHER', template, output)
-
+template = '/home/carva014/Work/Code/FAO/GloSIS-private/GN2CKAN/3_template.xml'
+output = '/home/carva014/Downloads/FAO/Metadata/output'
+group_id = 'paper_maps'
+bake_xml(group_id, template, output)
 
 # close db connection
 conn.commit()
 cur.close()
 conn.close()
+print('Finished')

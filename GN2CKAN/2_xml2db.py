@@ -9,7 +9,7 @@ from lxml import etree as ET
 #               https://www.edureka.co/blog/python-xml-parser-tutorial/
 
 
-def extract_data():
+def extract_data(directory):
   count = 0
   ns = {'gmd':'http://www.isotc211.org/2005/gmd',
         'gco':'http://www.isotc211.org/2005/gco',
@@ -17,7 +17,6 @@ def extract_data():
         'myprefix':'http://www.isotc211.org/2005/myprefix'}
 
   # iterate records
-  directory = '/home/carva014/Downloads/FAO/Metadata'
   for filename in os.listdir(directory):
     file_path = os.path.join(directory, filename)
 
@@ -420,16 +419,16 @@ def extract_data():
             sql = f"UPDATE xml2db.mapset SET lineage_source_title = $${lineage_source_title}$$ WHERE file_identifier = '{file_identifier}'"
             cur.execute(sql)
 
-  print('Finished')
-
 # open db connection
 conn = psycopg2.connect("host='localhost' port='5432' dbname='iso19139' user='sis'")
 cur = conn.cursor()
 
 # run function
-extract_data()
+directory = '/home/carva014/Downloads/FAO/Metadata/a'
+extract_data(directory)
 
 # close db connection
 conn.commit()
 cur.close()
 conn.close()
+print('Finished')
