@@ -424,7 +424,7 @@ conn = psycopg2.connect("host='localhost' port='5432' dbname='iso19139' user='si
 cur = conn.cursor()
 
 # run function
-directory = '/home/carva014/Downloads/FAO/Metadata/a'
+directory = '/home/carva014/Downloads/FAO/Metadata/input'
 extract_data(directory)
 
 # close db connection
