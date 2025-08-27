@@ -20,5 +20,5 @@ psql -h localhost -p 5432 -d iso19139 -U sis -f $PROJECT_DIR/1_schema.sql
 # 2. xml to db
 python $PROJECT_DIR/2_xml2db.py
 
-# 4. db to xml
-python $PROJECT_DIR/4_db2xml.py
+# 3. db to xml
+python $PROJECT_DIR/3_db2xml.py
