@@ -25,11 +25,11 @@ def convert_size(size_bytes):
    s = round(size_bytes / p, 2)
    return "%s %s" % (s, size_name[i])
 
-def spatial_data_scan(rootdir):
+def spatial_data_scan(INPUT_DIR):
 
     print("Extracting metadata from GeoTIFF's ...")
     # iterate files
-    for subdir, dirs, files in os.walk(rootdir):
+    for subdir, dirs, files in os.walk(INPUT_DIR):
         for file in files:
 
             # diccionary to store variables
@@ -165,7 +165,8 @@ conn = psycopg2.connect("host='localhost' port='5432' dbname='iso19139' user='gl
 cur = conn.cursor()
 
 # run function
-spatial_data_scan('/home/carva014/Work/Code/FAO/GloSIS/glosis-datacube/BT/output')
+INPUT_DIR = sys.argv[1]
+spatial_data_scan(INPUT_DIR)
 
 # close db connection
 conn.commit()

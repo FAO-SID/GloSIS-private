@@ -1,8 +1,9 @@
 #coding: utf-8
 
+import sys
 import psycopg2
 
-def export_style(output, country_id, project_id):
+def export_style(country_id, project_id, output_dir):
     
     print(f'Exporting XML, SLD, MAP for project {project_id} ...')
 
@@ -19,7 +20,7 @@ def export_style(output, country_id, project_id):
     for row in rows:
         property = row[0]
         content = row[1]
-        write_file = open(f'{output}/SOIL-{property}.sld','w')
+        write_file = open(f'{output_dir}/SOIL-{property}.sld','w')
         write_file.write(content)
         write_file.close
 
@@ -35,7 +36,7 @@ def export_style(output, country_id, project_id):
     for row in rows:
         mapset = row[0]
         content = row[1]
-        write_file = open(f'{output}/{mapset}.xml','w')
+        write_file = open(f'{output_dir}/{mapset}.xml','w')
         write_file.write(content)
         write_file.close
     
@@ -52,7 +53,7 @@ def export_style(output, country_id, project_id):
     for row in rows:
         layer = row[0]
         content = row[1]
-        write_file = open(f'{output}/{layer}.map','w')
+        write_file = open(f'{output_dir}/{layer}.map','w')
         write_file.write(content)
         write_file.close
     return
@@ -62,12 +63,10 @@ conn = psycopg2.connect("host='localhost' port='5432' dbname='iso19139' user='gl
 cur = conn.cursor()
 
 # run function
-country_id='BT'
-output=f'/home/carva014/Work/Code/FAO/GloSIS/glosis-datacube/{country_id}/output'
-export_style(output, country_id, 'GSOC')
-export_style(output, country_id, 'GSNM')
-export_style(output, country_id, 'GSAS')
-export_style(output, country_id, 'OTHER')
+country_id = sys.argv[1]
+project_id = sys.argv[2]
+output_dir = sys.argv[3]
+export_style(country_id, project_id, output_dir)
 
 # close db connection
 conn.commit()

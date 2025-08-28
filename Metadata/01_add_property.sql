@@ -1,4 +1,4 @@
-INSERT INTO metadata.property (property_id, name, unit_of_measure_id) VALUES
+INSERT INTO spatial_metadata.property (property_id, name, unit_of_measure_id) VALUES
 ('CORGASRBAUU', 'Organic Carbon Sequestration Potential - ASR Business As Usual (BAU) uncertainty', 'tonnes C ha-1 yr-1'),
 ('CORGASRSSM1U', 'Organic Carbon Sequestration Potential - ASR SSM1 uncertainty', 'tonnes C ha-1 yr-1'),
 ('CORGASRSSM2U', 'Organic Carbon Sequestration Potential - ASR SSM2 uncertainty', 'tonnes C ha-1 yr-1'),
@@ -29,11 +29,13 @@ INSERT INTO metadata.property (property_id, name, unit_of_measure_id) VALUES
 ('BSEXCSD', 'Exchangeable bases standard deviation', 'cmol(c)/kg'),
 ('ECXSD', 'Electrical conductivity standard deviation', 'dS m-1'),
 ('PHXSD', 'pH - Hydrogen potential standard deviation', 'pH'),
-('KEXCSD', 'Potassium (K+) - exchangeable standard deviation', 'cmol(c)/kg');
+('KEXCSD', 'Potassium (K+) - exchangeable standard deviation', 'cmol(c)/kg')
+ ON CONFLICT (property_id) DO NOTHING;
 
 
-INSERT INTO metadata.property (property_id, name, unit_of_measure_id, property_type, num_intervals) VALUES
-('CLAWRB', 'World Reference Base', 'class', 'categorical', 7);
+INSERT INTO spatial_metadata.property (property_id, name, unit_of_measure_id, property_type, num_intervals) VALUES
+('CLAWRB', 'World Reference Base', 'class', 'categorical', 7)
+ ON CONFLICT (property_id) DO NOTHING;
 
 -- trashed
 -- ('ECXU', 'Electrical conductivity uncertainty', 'dS m-1'),
