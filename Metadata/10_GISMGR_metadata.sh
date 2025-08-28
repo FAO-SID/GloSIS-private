@@ -4,11 +4,11 @@
 DB_HOST="localhost"
 DB_PORT="5432"
 DB_NAME="iso19139"
-DB_USER="glosis"
+DB_USER="sis"
 BASE_URL=https://data.apps.fao.org/gismgr/api/v2
 WORKSPACE="GLOSIS"
 FILE_JSON="/home/carva014/Downloads/data.json"
-API_KEY_CKAN=$(cat /home/carva014/Downloads/FAO/API_KEY_CKAN.txt)
+API_KEY_CKAN=$(cat /home/carva014/Documents/Arquivo/Trabalho/FAO/API_KEY_CKAN.txt)
 
 create_metadata() {
     # Read ID_TOKEN
@@ -27,16 +27,16 @@ create_metadata() {
         o.city,
         o.delivery_point,
         i.individual_id
-    FROM metadata.mapset m 
-    LEFT JOIN metadata.ver_x_org_x_ind v ON v.mapset_id = m.mapset_id
-    LEFT JOIN metadata.individual i ON i.individual_id = v.individual_id
-    LEFT JOIN metadata.organisation o ON o.organisation_id = v.organisation_id
+    FROM spatial_metadata.mapset m 
+    LEFT JOIN spatial_metadata.ver_x_org_x_ind v ON v.mapset_id = m.mapset_id
+    LEFT JOIN spatial_metadata.individual i ON i.individual_id = v.individual_id
+    LEFT JOIN spatial_metadata.organisation o ON o.organisation_id = v.organisation_id
     LEFT JOIN (
                 SELECT mapset_id, 
                     CASE count(*) WHEN 1 THEN 'maps'
-                            WHEN 2 THEN 'mapsets'
+                                  WHEN 2 THEN 'mapsets'
                     END
-                FROM metadata.layer
+                FROM spatial_metadata.layer
                 GROUP BY mapset_id
     ) l ON l.mapset_id = m.mapset_id
     WHERE m.mapset_id = 'PH-GSAS-SALT-2020'

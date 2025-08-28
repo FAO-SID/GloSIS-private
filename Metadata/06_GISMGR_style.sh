@@ -4,14 +4,13 @@
 DB_HOST="localhost"
 DB_PORT="5432"
 DB_NAME="iso19139"
-DB_USER="glosis"
+DB_USER="sis"
 BASE_URL=https://data.apps.fao.org/gismgr/api/v2
 WORKSPACE="GLOSIS"
-API_KEY=$(cat /home/carva014/Downloads/FAO/API_KEY.txt)
-TOKEN_CACHE_FILE="/home/carva014/Downloads/FAO/API_ID_TOKEN.txt"
+API_KEY=$(cat /home/carva014/Documents/Arquivo/Trabalho/FAO/API_KEY.txt)
+TOKEN_CACHE_FILE="/home/carva014/Documents/Arquivo/Trabalho/FAO/API_ID_TOKEN.txt"
 FILE_JSON="/home/carva014/Downloads/data.json"
 FILE_SLD="/home/carva014/Downloads/data.sld"
-
 
 # Function to request a new ID_TOKEN
 request_new_token() {
@@ -67,7 +66,7 @@ update_style() {
 
     # Loop soil properties
     psql -h "$DB_HOST" -p "$DB_PORT" -d "$DB_NAME" -U "$DB_USER" -t -A -F"|" -c \
-    "SELECT property_id, name, unit_id FROM metadata.property WHERE min IS NOT NULL ORDER BY property_id" | \
+    "SELECT property_id, name, unit_of_measure_id FROM spatial_metadata.property WHERE min IS NOT NULL ORDER BY property_id" | \
     while IFS="|" read -r PROPERTY_ID NAME UNIT_ID; do
         > "$FILE_JSON"
         echo ""
@@ -82,7 +81,7 @@ update_style() {
         echo "  }" >> "$FILE_JSON"
 
         # SLD file
-        psql -q -h "$DB_HOST" -p "$DB_PORT" -d "$DB_NAME" -U "$DB_USER" -t -A -c "SELECT sld FROM metadata.property WHERE property_id = '$PROPERTY_ID'" | sed 's/\\n/\n/g' > $FILE_SLD
+        psql -q -h "$DB_HOST" -p "$DB_PORT" -d "$DB_NAME" -U "$DB_USER" -t -A -c "SELECT sld FROM spatial_metadata.property WHERE property_id = '$PROPERTY_ID'" | sed 's/\\n/\n/g' > $FILE_SLD
 
         # Check if style exists
         RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer $ID_TOKEN" \

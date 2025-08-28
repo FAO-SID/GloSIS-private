@@ -5,7 +5,7 @@
 DB_HOST="localhost"
 DB_PORT="5432"
 DB_NAME="iso19139"
-DB_USER="glosis"
+DB_USER="sis"
 
 
 ## Install gsutil
@@ -23,9 +23,9 @@ DB_USER="glosis"
 # Copy MAPs
 psql -h "$DB_HOST" -p "$DB_PORT" -d "$DB_NAME" -U "$DB_USER" -t -A -F"|" -c \
     "SELECT m.mapset_id, l.layer_id||'.tif'
-    FROM metadata.mapset m
-    LEFT JOIN metadata.layer l ON l.mapset_id = m.mapset_id
-    WHERE m.mapset_id IN (SELECT mapset_id FROM metadata.layer GROUP BY mapset_id HAVING count(*)=1)
+    FROM spatial_metadata.mapset m
+    LEFT JOIN spatial_metadata.layer l ON l.mapset_id = m.mapset_id
+    WHERE m.mapset_id IN (SELECT mapset_id FROM spatial_metadata.layer GROUP BY mapset_id HAVING count(*)=1)
     ORDER BY l.layer_id;" | \
 while IFS="|" read -r MAPSET FILE_NAME; do
     echo $FILE_NAME
@@ -37,9 +37,9 @@ done
 echo ""
 psql -h "$DB_HOST" -p "$DB_PORT" -d "$DB_NAME" -U "$DB_USER" -t -A -F"|" -c \
     "SELECT m.mapset_id, l.layer_id||'.tif'
-    FROM metadata.mapset m
-    LEFT JOIN metadata.layer l ON l.mapset_id = m.mapset_id
-    WHERE m.mapset_id IN (SELECT mapset_id FROM metadata.layer GROUP BY mapset_id HAVING count(*)>1)
+    FROM spatial_metadata.mapset m
+    LEFT JOIN spatial_metadata.layer l ON l.mapset_id = m.mapset_id
+    WHERE m.mapset_id IN (SELECT mapset_id FROM spatial_metadata.layer GROUP BY mapset_id HAVING count(*)>1)
     ORDER BY l.layer_id;" | \
 while IFS="|" read -r MAPSET FILE_NAME; do
     echo $FILE_NAME
