@@ -94,9 +94,9 @@ INSERT INTO spatial_metadata.individual (individual_id, email) VALUES
 INSERT INTO spatial_metadata.proj_x_org_x_ind (country_id, project_id, tag, "role", "position", organisation_id, individual_id)
     SELECT DISTINCT country_id, project_id, 'contact', 'resourceProvider', 'GIS technician', 'Bhutan National Soil Services Centre', 'Sangita Pradhan' FROM spatial_metadata.project WHERE country_id = 'BT'
             UNION
-    SELECT DISTINCT country_id, project_id, 'pointOfContact', 'author', 'Soil Survey & Land Evaluation Supervisor', 'Bhutan National Soil Services Centre', 'Thinley Dorji' FROM spatial_metadata.project WHERE country_id = 'BT'
+    SELECT DISTINCT country_id, project_id, 'pointOfContact', 'author', 'Soil Survey and Land Evaluation Supervisor', 'Bhutan National Soil Services Centre', 'Thinley Dorji' FROM spatial_metadata.project WHERE country_id = 'BT'
             UNION
-    SELECT DISTINCT country_id, project_id, 'pointOfContact', 'author', 'Principal Soil Survey & Land Evaluation Officer', 'Bhutan National Soil Services Centre', 'Tsheten Dorji' FROM spatial_metadata.project WHERE country_id = 'BT'
+    SELECT DISTINCT country_id, project_id, 'pointOfContact', 'author', 'Principal Soil Survey and Land Evaluation Officer', 'Bhutan National Soil Services Centre', 'Tsheten Dorji' FROM spatial_metadata.project WHERE country_id = 'BT'
     ON CONFLICT (country_id, project_id, tag, role, "position", organisation_id, individual_id) DO NOTHING;
 
 
