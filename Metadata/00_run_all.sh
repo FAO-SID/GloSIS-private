@@ -3,14 +3,14 @@
 # variables
 COUNTRY="BT"
 PROJECT_DIR="/home/carva014/Work/Code/FAO"
-INPUT_DIR="$PROJECT_DIR/GloSIS/glosis-datacube/$COUNTRY/output"
+INPUT_DIR="/home/carva014/Downloads/FAO/AFACI/$COUNTRY/output"
 DATE=`date +%Y-%m-%d`
 
 clear
 
 # reset
-rm -Rf $PROJECT_DIR/GloSIS/glosis-datacube/$COUNTRY/tmp
-rm -Rf $PROJECT_DIR/GloSIS/glosis-datacube/$COUNTRY/output
+rm -Rf /home/carva014/Downloads/FAO/AFACI/$COUNTRY/tmp
+rm -Rf /home/carva014/Downloads/FAO/AFACI/$COUNTRY/output
 
 # process GeoTIFF's
 $PROJECT_DIR/GloSIS/glosis-datacube/$COUNTRY/scripts/data_cube_1_rename.sh
