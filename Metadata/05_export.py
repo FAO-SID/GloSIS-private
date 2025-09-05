@@ -8,19 +8,18 @@ def export_style(country_id, project_id, output_dir):
     print(f'Exporting XML, SLD, MAP for project {project_id} ...')
 
     # symbology
-    sql = f"""  SELECT DISTINCT p.property_id, p.sld
-                FROM spatial_metadata.mapset m
-                LEFT JOIN spatial_metadata.property p ON p.property_id = m.property_id
-                WHERE p.sld IS NOT NULL 
-                  AND m.country_id = '{country_id}'
-                  AND m.project_id = '{project_id}'
-                ORDER BY p.property_id"""
+    sql = f"""  SELECT DISTINCT mapset_id, sld
+                FROM spatial_metadata.mapset
+                WHERE sld IS NOT NULL 
+                  AND country_id = '{country_id}'
+                  AND project_id = '{project_id}'
+                ORDER BY mapset_id"""
     cur.execute(sql)
     rows = cur.fetchall()
     for row in rows:
-        property = row[0]
+        mapset_id = row[0]
         content = row[1]
-        write_file = open(f'{output_dir}/SOIL-{property}.sld','w')
+        write_file = open(f'{output_dir}/{mapset_id}.sld','w')
         write_file.write(content)
         write_file.close
 
@@ -34,9 +33,9 @@ def export_style(country_id, project_id, output_dir):
     cur.execute(sql)
     rows = cur.fetchall()
     for row in rows:
-        mapset = row[0]
+        mapset_id = row[0]
         content = row[1]
-        write_file = open(f'{output_dir}/{mapset}.xml','w')
+        write_file = open(f'{output_dir}/{mapset_id}.xml','w')
         write_file.write(content)
         write_file.close
     
@@ -51,9 +50,9 @@ def export_style(country_id, project_id, output_dir):
     cur.execute(sql)
     rows = cur.fetchall()
     for row in rows:
-        layer = row[0]
+        layer_id = row[0]
         content = row[1]
-        write_file = open(f'{output_dir}/{layer}.map','w')
+        write_file = open(f'{output_dir}/{layer_id}.map','w')
         write_file.write(content)
         write_file.close
     return

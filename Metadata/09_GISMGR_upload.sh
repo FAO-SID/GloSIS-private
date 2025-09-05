@@ -6,6 +6,8 @@ DB_HOST="localhost"
 DB_PORT="5432"
 DB_NAME="iso19139"
 DB_USER="sis"
+COUNTRY="BT"
+DATA_DIR="/home/carva014/Downloads/FAO/AFACI/$COUNTRY/output"
 
 
 ## Install gsutil
@@ -29,7 +31,7 @@ psql -h "$DB_HOST" -p "$DB_PORT" -d "$DB_NAME" -U "$DB_USER" -t -A -F"|" -c \
     ORDER BY l.layer_id;" | \
 while IFS="|" read -r MAPSET FILE_NAME; do
     echo $FILE_NAME
-    gsutil -mq cp /home/carva014/Work/Code/FAO/GloSIS/glosis-datacube/PH/output/${FILE_NAME}   gs://fao-gismgr-glosis-upload/MAP/${MAPSET}/
+    gsutil -mq cp ${DATA_DIR}/${FILE_NAME} gs://fao-gismgr-glosis-upload/MAP/${MAPSET}/
 done
 
 
@@ -43,5 +45,5 @@ psql -h "$DB_HOST" -p "$DB_PORT" -d "$DB_NAME" -U "$DB_USER" -t -A -F"|" -c \
     ORDER BY l.layer_id;" | \
 while IFS="|" read -r MAPSET FILE_NAME; do
     echo $FILE_NAME
-    gsutil -mq cp /home/carva014/Work/Code/FAO/GloSIS/glosis-datacube/PH/output/${FILE_NAME}   gs://fao-gismgr-glosis-upload/MAPSET/${MAPSET}/
+    gsutil -mq cp ${DATA_DIR}/${FILE_NAME} gs://fao-gismgr-glosis-upload/MAPSET/${MAPSET}/
 done

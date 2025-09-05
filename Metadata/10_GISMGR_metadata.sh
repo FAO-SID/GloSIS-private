@@ -9,6 +9,8 @@ BASE_URL=https://data.apps.fao.org/gismgr/api/v2
 WORKSPACE="GLOSIS"
 FILE_JSON="/home/carva014/Downloads/data.json"
 API_KEY_CKAN=$(cat /home/carva014/Documents/Arquivo/Trabalho/FAO/API_KEY_CKAN.txt)
+COUNTRY="BT"
+
 
 create_metadata() {
     # Read ID_TOKEN
@@ -39,7 +41,6 @@ create_metadata() {
                 FROM spatial_metadata.layer
                 GROUP BY mapset_id
     ) l ON l.mapset_id = m.mapset_id
-    WHERE m.mapset_id = 'PH-GSAS-SALT-2020'
     ORDER BY m.mapset_id, v.organisation_id" | \
     while IFS="|" read -r FILE_IDENTIFIER MAP_CODE CASE ORGANISATION_ID EMAIL COUNTRY POSTAL_CODE CITY DELIVERY_POINT INDIVIDUAL_ID; do
         > "$FILE_JSON"

@@ -70,7 +70,7 @@ update_style() {
     while IFS="|" read -r PROPERTY_ID NAME UNIT_ID; do
         > "$FILE_JSON"
         echo ""
-        STYLE_CODE="SOIL-${PROPERTY_ID}"
+        STYLE_CODE="$PROPERTY_ID"
         echo $STYLE_CODE
 
         # JSON file

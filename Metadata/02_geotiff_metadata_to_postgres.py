@@ -118,7 +118,7 @@ def spatial_data_scan(INPUT_DIR):
                     src_band = src_ds.GetRasterBand(band_number)
                     if src_band is None:
                         continue
-                    stats = src_band.GetStatistics(True, True)
+                    stats = src_band.GetStatistics(False, True)
                     if stats is None:
                         continue
 
@@ -143,7 +143,7 @@ def spatial_data_scan(INPUT_DIR):
 
             # commit changes in the DB per file
             conn.commit()
-    
+
     # remove -123456789 values
     sql = """UPDATE spatial_metadata.layer SET compression = NULL WHERE compression='None';
              UPDATE spatial_metadata.layer SET stats_mean = NULL WHERE stats_mean=-123456789;

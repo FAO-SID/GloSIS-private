@@ -67,21 +67,20 @@ update_mapset() {
     # Loop soil properties
     psql -h "$DB_HOST" -p "$DB_PORT" -d "$DB_NAME" -U "$DB_USER" -t -A -F"|" -c \
     "SELECT m.mapset_id,
-        'SOIL-'|| pp.property_id style_code,
+        m.mapset_id style_code,
         UPPER(REPLACE(c.en,' ','_')) country,
         UPPER(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(pp.name,' - ','_'),' ','_'),'(',''),')',''),'+','')) property,
         m.title,
         m.abstract,
-        COALESCE(pp.unit_of_measure_id,'unknown') unit_of_measure_id
+        COALESCE(m.unit_of_measure_id,'unknown') unit
     FROM spatial_metadata.project pj
     LEFT JOIN spatial_metadata.country c ON c.country_id = pj.country_id
     LEFT JOIN spatial_metadata.mapset m ON m.project_id = pj.project_id
     LEFT JOIN spatial_metadata.layer l ON l.mapset_id = m.mapset_id
     LEFT JOIN spatial_metadata.property pp ON pp.property_id = m.property_id
     WHERE pp.min IS NOT NULL
-      --AND m.mapset_id IN (SELECT mapset_id FROM spatial_metadata.layer GROUP BY mapset_id HAVING count(*)>1)
-      AND m.mapset_id = 'PH-GSAS-SALT-2020'
-    ORDER BY pp.property_id;" | \
+      AND m.mapset_id IN (SELECT mapset_id FROM spatial_metadata.layer GROUP BY mapset_id HAVING count(*)>1)
+    ORDER BY m.mapset_id;" | \
     while IFS="|" read -r MAP_CODE STYLE_CODE COUNTRY PROPERTY TITLE ABSTRACT UNIT; do
         > "$FILE_JSON"
         echo ""

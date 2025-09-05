@@ -3,14 +3,16 @@
 # variables
 COUNTRY="BT"
 PROJECT_DIR="/home/carva014/Work/Code/FAO"
-INPUT_DIR="/home/carva014/Downloads/FAO/AFACI/$COUNTRY/output"
+DATA_DIR="/home/carva014/Downloads/FAO/AFACI/$COUNTRY"
 DATE=`date +%Y-%m-%d`
 
 clear
 
 # reset
-rm -Rf /home/carva014/Downloads/FAO/AFACI/$COUNTRY/tmp
-rm -Rf /home/carva014/Downloads/FAO/AFACI/$COUNTRY/output
+rm -Rf $DATA_DIR/tmp
+rm -Rf $DATA_DIR/output/*.tif
+rm -Rf $DATA_DIR/output/*.xml
+rm -Rf $DATA_DIR/output/*.sld
 
 # process GeoTIFF's
 $PROJECT_DIR/GloSIS/glosis-datacube/$COUNTRY/scripts/data_cube_1_rename.sh
@@ -19,28 +21,28 @@ $PROJECT_DIR/GloSIS/glosis-datacube/$COUNTRY/scripts/data_cube_3_nodata.sh
 # $PROJECT_DIR/GloSIS/glosis-datacube/$COUNTRY/scripts/data_cube_2_check.sh
 $PROJECT_DIR/GloSIS/glosis-datacube/$COUNTRY/scripts/data_cube_4_epsg.sh
 $PROJECT_DIR/GloSIS/glosis-datacube/$COUNTRY/scripts/data_cube_5_cog.sh
-rm -Rf $PROJECT_DIR/GloSIS/glosis-datacube/$COUNTRY/tmp
+rm -Rf $DATA_DIR/tmp
 
 # add files to the database
 eval "$(conda shell.bash hook)"
 conda activate db
 psql -h localhost -p 5432 -d iso19139 -U sis -c "DELETE FROM spatial_metadata.project WHERE country_id = '$COUNTRY'"
 psql -h localhost -p 5432 -d iso19139 -U sis -f $PROJECT_DIR/GloSIS-private/Metadata/01_add_property.sql
-python $PROJECT_DIR/GloSIS-private/Metadata/02_scan.py $INPUT_DIR
-rm $PROJECT_DIR/GloSIS/glosis-datacube/$COUNTRY/output/*.tif.aux.xml
-psql -h localhost -p 5432 -d iso19139 -U sis -f $PROJECT_DIR/GloSIS-private/Metadata/03_add_metadata_$COUNTRY.sql
+python $PROJECT_DIR/GloSIS-private/Metadata/02_geotiff_metadata_to_postgres.py $DATA_DIR/output/
+rm $DATA_DIR/output/*.tif.aux.xml
+psql -h localhost -p 5432 -d iso19139 -U sis -f $PROJECT_DIR/GloSIS-private/Metadata/03_additional_metadata_$COUNTRY.sql
 
 # produce the metadata
 # python $PROJECT_DIR/GloSIS-private/Metadata/04_table2xml.py "$COUNTRY" "GSAS"
-python $PROJECT_DIR/GloSIS-private/Metadata/04_table2xml.py "$COUNTRY" "GSOC"
+python $PROJECT_DIR/GloSIS-private/Metadata/04_table2xml.py "$COUNTRY" "GSOCSEQ"
 python $PROJECT_DIR/GloSIS-private/Metadata/04_table2xml.py "$COUNTRY" "GSNM"
 python $PROJECT_DIR/GloSIS-private/Metadata/04_table2xml.py "$COUNTRY" "OTHER"
 
 # export metadata (xml) mapfiles (map) and symbology (sld)
-# python $PROJECT_DIR/GloSIS-private/Metadata/05_export.py "$COUNTRY" "GSAS" "$PROJECT_DIR/GloSIS/glosis-datacube/$COUNTRY/output"
-python $PROJECT_DIR/GloSIS-private/Metadata/05_export.py "$COUNTRY" "GSOC" "$PROJECT_DIR/GloSIS/glosis-datacube/$COUNTRY/output"
-python $PROJECT_DIR/GloSIS-private/Metadata/05_export.py "$COUNTRY" "GSNM" "$PROJECT_DIR/GloSIS/glosis-datacube/$COUNTRY/output"
-python $PROJECT_DIR/GloSIS-private/Metadata/05_export.py "$COUNTRY" "OTHER" "$PROJECT_DIR/GloSIS/glosis-datacube/$COUNTRY/output"
+# python $PROJECT_DIR/GloSIS-private/Metadata/05_export.py "$COUNTRY" "GSAS" $DATA_DIR/output"
+python $PROJECT_DIR/GloSIS-private/Metadata/05_export.py "$COUNTRY" "GSOCSEQ" "$DATA_DIR/output"
+python $PROJECT_DIR/GloSIS-private/Metadata/05_export.py "$COUNTRY" "GSNM" "$DATA_DIR/output"
+python $PROJECT_DIR/GloSIS-private/Metadata/05_export.py "$COUNTRY" "OTHER" "$DATA_DIR/output"
 
 # create or update (if existis) symbology in GISMGR
 $PROJECT_DIR/GloSIS-private/Metadata/06_GISMGR_style.sh

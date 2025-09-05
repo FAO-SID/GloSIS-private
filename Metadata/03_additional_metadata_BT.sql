@@ -1,6 +1,10 @@
 -- project
-INSERT INTO spatial_metadata.project (country_id, project_id, project_name) SELECT 'BT', project_id, project_name FROM spatial_metadata.project WHERE country_id = 'PH' ON CONFLICT (country_id, project_id) DO NOTHING;
-INSERT INTO spatial_metadata.project (country_id, project_id, project_name) VALUES ('BT', 'OTHER', 'Other maps') ON CONFLICT (country_id, project_id) DO NOTHING;
+INSERT INTO spatial_metadata.project (country_id, project_id, project_name) VALUES 
+-- ('BT', 'GSAS', 'Global Salt-Affected Soils'),
+('BT', 'GSNM', 'Global Soil Nutrients Map'),
+('BT', 'GSOCSEQ', 'Global Soil Organic Carbon Sequestration potential map'),
+('BT', 'OTHER', 'Other maps')
+ON CONFLICT (country_id, project_id) DO NOTHING;
 
 
 -- dates
@@ -30,11 +34,11 @@ UPDATE spatial_metadata.mapset m SET title = t.title
 
 
 -- citation
-UPDATE spatial_metadata.mapset m
-    SET citation_md_identifier_code = t.citation_md_identifier_code, 
-        citation_md_identifier_code_space = t.citation_md_identifier_code_space
-    FROM (SELECT DISTINCT project_id, citation_md_identifier_code, citation_md_identifier_code_space FROM spatial_metadata.mapset WHERE country_id = 'PH' AND citation_md_identifier_code IS NOT NULL) t
-    WHERE m.country_id = 'BT' AND m.project_id = t.project_id;
+UPDATE spatial_metadata.mapset
+    SET citation_md_identifier_code = 'https://doi.org/10.4060/cb9002en', 
+        citation_md_identifier_code_space = 'doi'
+WHERE country_id = 'BT'
+  AND project_id = 'GSOCSEQ';
 
 
 -- abstract
@@ -56,9 +60,7 @@ WHERE m.mapset_id = l.mapset_id AND m.country_id = 'BT';
 
 -- keywords
 UPDATE spatial_metadata.mapset SET keyword_place = '{Bhutan}'::text[] WHERE country_id = 'BT';
-UPDATE spatial_metadata.mapset m SET keyword_theme = t.keyword_theme
-    FROM (SELECT DISTINCT property_id, keyword_theme FROM spatial_metadata.mapset WHERE keyword_theme IS NOT NULL AND country_id = 'PH') t
-    WHERE m.country_id = 'BT' AND m.property_id = t.property_id;
+UPDATE spatial_metadata.mapset m SET keyword_theme = p.keyword_theme FROM spatial_metadata.property p WHERE country_id = 'BT' AND m.property_id = p.property_id;
 
 
 -- licence
@@ -71,9 +73,20 @@ UPDATE spatial_metadata.mapset SET time_period_end = '2023-12-31' WHERE country_
 
 
 -- lineage
-UPDATE spatial_metadata.mapset m SET lineage_statement = t.lineage_statement
-    FROM (SELECT DISTINCT project_id, lineage_statement FROM spatial_metadata.mapset WHERE lineage_statement IS NOT NULL AND country_id = 'PH') t
-    WHERE m.country_id = 'BT' AND m.project_id = t.project_id;
+UPDATE spatial_metadata.mapset
+    SET lineage_statement = 'https://doi.org/10.4060/cc1717en'
+WHERE country_id = 'BT'
+  AND project_id = 'GSNM';
+
+UPDATE spatial_metadata.mapset
+    SET lineage_statement = 'https://doi.org/10.4060/cb2642en'
+WHERE country_id = 'BT'
+  AND project_id = 'GSOCSEQ';
+
+UPDATE spatial_metadata.mapset
+    SET lineage_statement = 'https://doi.org/10.4060/ca9215en'
+WHERE country_id = 'BT'
+  AND project_id = 'GSGSAS';
 
 
 -- insert organisation
@@ -123,13 +136,27 @@ INSERT INTO spatial_metadata.url (mapset_id, protocol, url, url_name)
 
 
 -- categorical class
-INSERT INTO spatial_metadata."class" (property_id, value, code, "label", color, opacity, publish) VALUES
-('CLAWRB', -1, '-1', '-1 - No Data', '#000000',1, 't'),
-('CLAWRB', 1, '1', '1 - Anthraquic Cambisols', '#800080',1, 't'),
-('CLAWRB', 2, '2', '2 - Dystric Cambisols', '#f84040',1, 't'),
-('CLAWRB', 3, '3', '3 - Eutric Cambisols', '#da70d6',1, 't'),
-('CLAWRB', 4, '4', '4 - Haplic Acrisols', '#f08080',1, 't'),
-('CLAWRB', 5, '5', '5 - Haplic Alisols', '#00ffff',1, 't'),
-('CLAWRB', 6, '6', '6 - Haplic Lixisols', '#f5deb3',1, 't'),
-('CLAWRB', 7, '7', '7 - Skeletic Cambisols', '#ee82ee',1, 't')
- ON CONFLICT (property_id, value) DO NOTHING;
+INSERT INTO spatial_metadata."class" (mapset_id, value, code, "label", color, opacity, publish) VALUES
+('BT-OTHER-CLAWRB-2024', -9999, '-9999', '-9999 - No Data', '#000000',1, 't'),
+('BT-OTHER-CLAWRB-2024', 1, '1', '1 - Anthraquic Cambisols', '#800080',1, 't'),
+('BT-OTHER-CLAWRB-2024', 2, '2', '2 - Dystric Cambisols', '#f84040',1, 't'),
+('BT-OTHER-CLAWRB-2024', 3, '3', '3 - Eutric Cambisols', '#da70d6',1, 't'),
+('BT-OTHER-CLAWRB-2024', 4, '4', '4 - Haplic Acrisols', '#f08080',1, 't'),
+('BT-OTHER-CLAWRB-2024', 5, '5', '5 - Haplic Alisols', '#00ffff',1, 't'),
+('BT-OTHER-CLAWRB-2024', 6, '6', '6 - Haplic Lixisols', '#f5deb3',1, 't'),
+('BT-OTHER-CLAWRB-2024', 7, '7', '7 - Skeletic Cambisols', '#ee82ee',1, 't')
+ ON CONFLICT (mapset_id, value) DO NOTHING;
+
+
+-- SALT	-1.0	-1	No Data	#000000	0.0	true
+-- SALT	4.0	4	4 - None	#ffffff	1.0	true
+-- SALT	6.0	6	6 - Slight Salinity	#90ee90	1.0	true
+-- SALT	2.0	2	2 - Moderate Salinity	#f5deb3	1.0	true
+-- SALT	8.0	8	8 - Strong Salinity	#f08080	1.0	true
+-- SALT	10.0	10	10 - Very Strong Salinity	#f84040	1.0	true
+-- SALT	1.0	1	1 - Extreme Salinity	#ff0000	1.0	true
+-- SALT	5.0	5	5 - Saline Sodic	#00ffff	1.0	true
+-- SALT	7.0	7	7 - Slight Sodicity	#add8e6	1.0	true
+-- SALT	3.0	3	3 - Moderate Sodicity	#ee82ee	1.0	true
+-- SALT	9.0	9	9 - Strong Sodicity	#da70d6	1.0	true
+-- SALT	11.0	11	11 - Very Strong Sodicity	#800080	1.0	true

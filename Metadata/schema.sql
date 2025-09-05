@@ -12,73 +12,94 @@ GRANT USAGE ON SCHEMA spatial_metadata TO sis_r;
 CREATE OR REPLACE FUNCTION spatial_metadata.class()
 RETURNS TRIGGER AS $$
 DECLARE
-    range FLOAT;
-    interval_size FLOAT;
-    current_min FLOAT;
-    current_max FLOAT;
-    i INT := 1;
-    start_r INT;
-    start_g INT;
-    start_b INT;
-    end_r INT;
-    end_g INT;
-    end_b INT;
-    color TEXT;
+  rec_layer RECORD;
+  rec_property RECORD;
+  range FLOAT;
+  interval_size FLOAT;
+  current_min FLOAT;
+  current_max FLOAT;
+  i INT := 1;
+  start_r INT;
+  start_g INT;
+  start_b INT;
+  end_r INT;
+  end_g INT;
+  end_b INT;
+  color TEXT;
 BEGIN
 
+SELECT  mapset_id, 
+        min(stats_minimum) min, 
+        max(stats_maximum) max
+INTO rec_layer
+FROM spatial_metadata.layer
+WHERE mapset_id = NEW.mapset_id
+GROUP BY mapset_id;
+
+SELECT  property_type, 
+        num_intervals,
+        start_color,
+        end_color
+INTO rec_property
+FROM spatial_metadata.property
+WHERE property_id = split_part(NEW.mapset_id,'-',3);
+
   -- Only when property_type is quantitative
-  IF NEW.property_type = 'quantitative' THEN
+  IF rec_property.property_type = 'quantitative' THEN
 
     -- Validate num_intervals
-    IF NEW.num_intervals <= 0 THEN
+    IF rec_property.num_intervals <= 0 THEN
         RAISE EXCEPTION 'Number of intervals must be greater than 0.';
     END IF;
 
     -- Validate start_color and end_color
-    IF NEW.start_color NOT LIKE '#______' OR NEW.end_color NOT LIKE '#______' THEN
+    IF rec_property.start_color NOT LIKE '#______' OR rec_property.end_color NOT LIKE '#______' THEN
         RAISE EXCEPTION 'Colors must be in HEX format (e.g., #F4E7D3).';
     END IF;
 
-    -- Check if stats_minimum and max are valid
-    IF NEW.min IS NULL OR NEW.max IS NULL THEN
-        RAISE EXCEPTION 'min and max must not be NULL.';
-    END IF;
+    -- Check if stats_minimum and max are not NULL
+    -- IF rec_layer.min IS NULL OR rec_layer.max IS NULL THEN
+    --     RAISE EXCEPTION 'min and max must not be NULL.';
+    -- END IF;
 
     -- Calculate the range and interval size
-    range := NEW.max - NEW.min;
+    range := rec_layer.max - rec_layer.min;
     IF range = 0 THEN
-        RAISE EXCEPTION 'Range is 0. Cannot create intervals for layer_id %.', NEW.layer_id;
+        RAISE EXCEPTION 'Range is 0. Cannot create intervals for layer_id %.', rec_property.layer_id;
     END IF;
-    interval_size := range / NEW.num_intervals;
-    current_min := NEW.min;
-    current_max := NEW.min + interval_size;
+    interval_size := range / rec_property.num_intervals;
+    current_min := rec_layer.min;
+    current_max := rec_layer.min + interval_size;
 
-    -- Delete existing rows for this property_id
-    DELETE FROM spatial_metadata.class WHERE property_id = NEW.property_id;
+    -- Delete existing rows for this mapset_id
+    DELETE FROM spatial_metadata.class WHERE mapset_id = rec_layer.mapset_id;
 
     -- Extract RGB components from start_color and end_color
-    start_r := ('x' || SUBSTRING(NEW.start_color FROM 2 FOR 2))::BIT(8)::INT;
-    start_g := ('x' || SUBSTRING(NEW.start_color FROM 4 FOR 2))::BIT(8)::INT;
-    start_b := ('x' || SUBSTRING(NEW.start_color FROM 6 FOR 2))::BIT(8)::INT;
-    end_r := ('x' || SUBSTRING(NEW.end_color FROM 2 FOR 2))::BIT(8)::INT;
-    end_g := ('x' || SUBSTRING(NEW.end_color FROM 4 FOR 2))::BIT(8)::INT;
-    end_b := ('x' || SUBSTRING(NEW.end_color FROM 6 FOR 2))::BIT(8)::INT;
+    start_r := ('x' || SUBSTRING(rec_property.start_color FROM 2 FOR 2))::BIT(8)::INT;
+    start_g := ('x' || SUBSTRING(rec_property.start_color FROM 4 FOR 2))::BIT(8)::INT;
+    start_b := ('x' || SUBSTRING(rec_property.start_color FROM 6 FOR 2))::BIT(8)::INT;
+    end_r := ('x' || SUBSTRING(rec_property.end_color FROM 2 FOR 2))::BIT(8)::INT;
+    end_g := ('x' || SUBSTRING(rec_property.end_color FROM 4 FOR 2))::BIT(8)::INT;
+    end_b := ('x' || SUBSTRING(rec_property.end_color FROM 6 FOR 2))::BIT(8)::INT;
 
     -- Loop to create intervals
-    WHILE i <= NEW.num_intervals LOOP
+    WHILE i <= rec_property.num_intervals LOOP
         -- Interpolate the color based on the interval index
         color := '#' || 
-                LPAD(TO_HEX(start_r + (end_r - start_r) * (i - 1) / (NEW.num_intervals - 1)), 2, '0') ||
-                LPAD(TO_HEX(start_g + (end_g - start_g) * (i - 1) / (NEW.num_intervals - 1)), 2, '0') ||
-                LPAD(TO_HEX(start_b + (end_b - start_b) * (i - 1) / (NEW.num_intervals - 1)), 2, '0');
+                LPAD(TO_HEX(start_r + (end_r - start_r) * (i - 1) / (rec_property.num_intervals - 1)), 2, '0') ||
+                LPAD(TO_HEX(start_g + (end_g - start_g) * (i - 1) / (rec_property.num_intervals - 1)), 2, '0') ||
+                LPAD(TO_HEX(start_b + (end_b - start_b) * (i - 1) / (rec_property.num_intervals - 1)), 2, '0');
 
         -- Insert the class interval and color into the categories table
-        INSERT INTO spatial_metadata.class (property_id, value, code, "label", color, opacity, publish)
-        VALUES (NEW.property_id, current_min::numeric(20,2), 
-              current_min::numeric(20,2) || ' - ' || current_max::numeric(20,2), 
-              current_min::numeric(20,2) || ' - ' || current_max::numeric(20,2), 
-              color, 1, 't')
-        ON CONFLICT (property_id, value)
+        INSERT INTO spatial_metadata.class (mapset_id, value, code, "label", color, opacity, publish)
+        VALUES (rec_layer.mapset_id, 
+                COALESCE(current_min::numeric(20,2),0), 
+                COALESCE(current_min::numeric(20,2),0) || ' - ' || COALESCE(current_max::numeric(20,2),0), 
+                COALESCE(current_min::numeric(20,2),0) || ' - ' || COALESCE(current_max::numeric(20,2),0), 
+                color, 
+                1, 
+                't')
+        ON CONFLICT (mapset_id, value)
         DO UPDATE SET
             code = EXCLUDED.code,
             label = EXCLUDED.label,
@@ -216,14 +237,18 @@ DECLARE
 </StyledLayerDescriptor>';
 
 BEGIN
-    FOR rec IN SELECT property_id, 
-                CASE WHEN property_type='categorical'  THEN 'values'
-                    WHEN property_type='quantitative' THEN 'intervals'
-                    END property_type
-                FROM spatial_metadata.property ORDER BY property_id
+    FOR rec IN SELECT DISTINCT NEW.mapset_id, 
+            CASE WHEN p.property_type='categorical'  THEN 'values'
+                 WHEN p.property_type='quantitative' THEN 'intervals'
+              END property_type
+            FROM spatial_metadata.mapset m, 
+                 spatial_metadata.property p
+            WHERE split_part(NEW.mapset_id,'-',3) = p.property_id
+            ORDER BY NEW.mapset_id
+
     LOOP
 	
-      FOR sub_rec IN SELECT code, value, color, opacity, label FROM spatial_metadata.class WHERE property_id = rec.property_id AND publish IS TRUE ORDER BY value
+      FOR sub_rec IN SELECT code, value, color, opacity, label FROM spatial_metadata.class WHERE mapset_id = NEW.mapset_id AND publish IS TRUE ORDER BY value
     	LOOP
 		
 			SELECT E'\n             <sld:ColorMapEntry quantity="' ||sub_rec.value|| '" color="' ||sub_rec.color|| '" opacity="' ||sub_rec.opacity|| '" label="' ||sub_rec.label|| '"/>' INTO new_row;
@@ -232,7 +257,7 @@ BEGIN
 		
 		END LOOP;
 		
-		  UPDATE spatial_metadata.property SET sld = replace(replace(part_1,'LAYER_NAME',rec.property_id),'property_type',rec.property_type) || part_2 || part_3 WHERE property_id = rec.property_id;
+		  UPDATE spatial_metadata.mapset SET sld = replace(replace(part_1,'LAYER_NAME',NEW.mapset_id),'property_type',rec.property_type) || part_2 || part_3 WHERE mapset_id = NEW.mapset_id;
 		  SELECT '' INTO part_2;
 		  SELECT '' INTO new_row;
 		  
@@ -320,14 +345,8 @@ CREATE TABLE spatial_metadata.mapset (
   lineage_statement text,
   lineage_source_uuidref text,
   lineage_source_title text,
-  -- property_type text DEFAULT 'quantitative',
-  -- num_intervals INT DEFAULT 10, 
-  -- start_color text DEFAULT '#F4E7D3', 
-  -- end_color text DEFAULT '#5C4033',
-  -- min real DEFAULT -12345,
-  -- max real DEFAULT 12345,
-  -- sld text,
   xml text,
+  sld text,
   CONSTRAINT mapset_dimension_check CHECK ((dimension = ANY (ARRAY['depth', 'time']))),
   CONSTRAINT mapset_citation_md_identifier_code_space_check CHECK ((citation_md_identifier_code_space = ANY (ARRAY['doi', 'uuid']))),
   CONSTRAINT mapset_status_check CHECK ((status = ANY (ARRAY['completed', 'historicalArchive', 'obsolete', 'onGoing', 'planned', 'required', 'underDevelopment']))),
@@ -351,7 +370,7 @@ CREATE TABLE spatial_metadata.property (
   num_intervals smallint NOT NULL, 
   start_color text NOT NULL, 
   end_color text NOT NULL,
-  sld text,
+  keyword_theme text[],
   CONSTRAINT property_property_type_check CHECK ((property_type = ANY (ARRAY['quantitative', 'categorical'])))
 );
 ALTER TABLE spatial_metadata.property OWNER TO sis;
@@ -368,7 +387,7 @@ CREATE TABLE spatial_metadata.layer (
   file_size integer,
   file_size_pretty text,
   reference_layer boolean DEFAULT FALSE,
-  -- from layer_scan.py
+  -- from geotiff_metadata_to_postgres.py
   reference_system_identifier_code text,
   distance text,
   distance_uom text,
@@ -405,12 +424,12 @@ GRANT SELECT ON TABLE spatial_metadata.layer TO sis_r;
 
 
 CREATE TABLE IF NOT EXISTS spatial_metadata.class
-(   
-  property_id text NOT NULL,
+(
+  mapset_id text NOT NULL,
   value real NOT NULL,
-  code text COLLATE pg_catalog."default" NOT NULL,
-  label text COLLATE pg_catalog."default" NOT NULL,
-  color text COLLATE pg_catalog."default" NOT NULL,
+  code text NOT NULL,
+  label text NOT NULL,
+  color text NOT NULL,
   opacity real NOT NULL,
   publish boolean NOT NULL
 );
@@ -477,7 +496,7 @@ ALTER TABLE spatial_metadata.mapset ADD PRIMARY KEY (mapset_id);
 ALTER TABLE spatial_metadata.mapset ADD UNIQUE (file_identifier);
 ALTER TABLE spatial_metadata.property ADD PRIMARY KEY (property_id);
 ALTER TABLE spatial_metadata.layer ADD PRIMARY KEY (layer_id);
-ALTER TABLE spatial_metadata.class ADD PRIMARY KEY (property_id, value);
+ALTER TABLE spatial_metadata.class ADD PRIMARY KEY (mapset_id, value);
 ALTER TABLE spatial_metadata.proj_x_org_x_ind ADD PRIMARY KEY (country_id, project_id, organisation_id, individual_id, position, tag, role);
 ALTER TABLE spatial_metadata.organisation ADD PRIMARY KEY (organisation_id);
 ALTER TABLE spatial_metadata.individual ADD PRIMARY KEY (individual_id);
@@ -493,7 +512,7 @@ ALTER TABLE spatial_metadata.proj_x_org_x_ind ADD FOREIGN KEY (country_id, proje
 ALTER TABLE spatial_metadata.proj_x_org_x_ind ADD FOREIGN KEY (organisation_id) REFERENCES spatial_metadata.organisation(organisation_id) ON UPDATE CASCADE ON DELETE CASCADE;
 ALTER TABLE spatial_metadata.proj_x_org_x_ind ADD FOREIGN KEY (individual_id) REFERENCES spatial_metadata.individual(individual_id) ON UPDATE CASCADE ON DELETE CASCADE;
 ALTER TABLE spatial_metadata.url ADD FOREIGN KEY (mapset_id) REFERENCES spatial_metadata.mapset(mapset_id) ON UPDATE CASCADE ON DELETE CASCADE;
-ALTER TABLE spatial_metadata.class ADD FOREIGN KEY (property_id) REFERENCES spatial_metadata.property(property_id) ON UPDATE CASCADE ON DELETE CASCADE;
+ALTER TABLE spatial_metadata.class ADD FOREIGN KEY (mapset_id) REFERENCES spatial_metadata.mapset(mapset_id) ON UPDATE CASCADE ON DELETE CASCADE;
 ALTER TABLE spatial_metadata.layer ADD FOREIGN KEY (mapset_id) REFERENCES spatial_metadata.mapset(mapset_id) ON UPDATE CASCADE ON DELETE CASCADE;
 ALTER TABLE spatial_metadata.mapset ADD FOREIGN KEY (country_id, project_id) REFERENCES spatial_metadata.project(country_id, project_id) ON UPDATE CASCADE ON DELETE CASCADE;
 ALTER TABLE spatial_metadata.mapset ADD FOREIGN KEY (property_id) REFERENCES spatial_metadata.property(property_id) ON UPDATE CASCADE ON DELETE NO ACTION;
@@ -507,25 +526,25 @@ ALTER TABLE spatial_metadata.property ADD FOREIGN KEY (unit_of_measure_id) REFER
 --       TRIGGER        --
 --------------------------
 
-CREATE TRIGGER class
-  AFTER UPDATE OF property_type, num_intervals, start_color, end_color, min, max
-  ON spatial_metadata.property
+
+DROP TRIGGER IF EXISTS class_func_on_layer_table ON spatial_metadata.layer;
+DROP TRIGGER IF EXISTS map_func_on_layer_table ON spatial_metadata.layer;
+DROP TRIGGER IF EXISTS sld_func_on_class_table ON spatial_metadata.class;
+
+CREATE TRIGGER class_func_on_layer_table
+  AFTER UPDATE OF stats_minimum, stats_maximum
+    ON spatial_metadata.layer
   FOR EACH ROW
   EXECUTE FUNCTION spatial_metadata.class();
 
-CREATE TRIGGER sld
-  AFTER INSERT OR UPDATE ON spatial_metadata.class
-  FOR EACH STATEMENT
-  EXECUTE FUNCTION spatial_metadata.sld();
-
-CREATE TRIGGER map_layer
+CREATE TRIGGER map_func_on_layer_table
   AFTER UPDATE OF layer_id, mapset_id, distance_uom, reference_system_identifier_code, extent, file_extension, stats_minimum, stats_maximum
-  ON spatial_metadata.layer
+    ON spatial_metadata.layer
   FOR EACH ROW
   EXECUTE FUNCTION spatial_metadata.map();
 
--- CREATE TRIGGER map_property
--- AFTER UPDATE OF property_id, start_color, end_color
--- ON spatial_metadata.property
--- FOR EACH ROW
--- EXECUTE FUNCTION spatial_metadata.map();
+CREATE TRIGGER sld_func_on_class_table
+  AFTER INSERT OR UPDATE 
+    ON spatial_metadata.class
+  FOR EACH ROW
+  EXECUTE FUNCTION spatial_metadata.sld();
