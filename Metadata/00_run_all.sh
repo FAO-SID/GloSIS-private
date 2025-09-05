@@ -10,9 +10,7 @@ clear
 
 # reset
 rm -Rf $DATA_DIR/tmp
-rm -Rf $DATA_DIR/output/*.tif
-rm -Rf $DATA_DIR/output/*.xml
-rm -Rf $DATA_DIR/output/*.sld
+rm -Rf $DATA_DIR/output
 
 # process GeoTIFF's
 $PROJECT_DIR/GloSIS/glosis-datacube/$COUNTRY/scripts/data_cube_1_rename.sh
@@ -22,6 +20,8 @@ $PROJECT_DIR/GloSIS/glosis-datacube/$COUNTRY/scripts/data_cube_3_nodata.sh
 $PROJECT_DIR/GloSIS/glosis-datacube/$COUNTRY/scripts/data_cube_4_epsg.sh
 $PROJECT_DIR/GloSIS/glosis-datacube/$COUNTRY/scripts/data_cube_5_cog.sh
 rm -Rf $DATA_DIR/tmp
+cp $DATA_DIR/*.tmpl $DATA_DIR/output
+cp $DATA_DIR/*.map $DATA_DIR/output
 
 # add files to the database
 eval "$(conda shell.bash hook)"

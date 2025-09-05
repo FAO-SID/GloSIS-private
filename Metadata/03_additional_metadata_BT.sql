@@ -10,7 +10,7 @@ ON CONFLICT (country_id, project_id) DO NOTHING;
 -- dates
 UPDATE spatial_metadata.mapset SET creation_date = '2021-12-17', publication_date = '2021-12-17', revision_date = '2021-12-17' WHERE country_id = 'BT' AND project_id = 'GSAS';
 UPDATE spatial_metadata.mapset SET creation_date = '2024-03-28', publication_date = '2024-03-28', revision_date = '2024-03-28' WHERE country_id = 'BT' AND project_id = 'GSNM';
-UPDATE spatial_metadata.mapset SET creation_date = '2022-11-11', publication_date = '2022-11-11', revision_date = '2022-11-11' WHERE country_id = 'BT' AND project_id = 'GSOC';
+UPDATE spatial_metadata.mapset SET creation_date = '2022-11-11', publication_date = '2022-11-11', revision_date = '2022-11-11' WHERE country_id = 'BT' AND project_id = 'GSOCSEQ';
 UPDATE spatial_metadata.mapset SET creation_date = '2024-03-28', publication_date = '2024-03-28', revision_date = '2024-03-28' WHERE country_id = 'BT' AND project_id = 'OTHER';
 
 
@@ -86,7 +86,7 @@ WHERE country_id = 'BT'
 UPDATE spatial_metadata.mapset
     SET lineage_statement = 'https://doi.org/10.4060/ca9215en'
 WHERE country_id = 'BT'
-  AND project_id = 'GSGSAS';
+  AND project_id = 'GSAS';
 
 
 -- insert organisation
@@ -117,7 +117,7 @@ INSERT INTO spatial_metadata.proj_x_org_x_ind (country_id, project_id, tag, "rol
 INSERT INTO spatial_metadata.url (mapset_id, protocol, url, url_name)
     -- SELECT DISTINCT mapset_id, 'WWW:LINK-1.0-http--link', url_paper, 'Scientific paper' FROM spatial_metadata.metadata_manual WHERE url_paper IS NOT NULL
     --     UNION
-    SELECT DISTINCT mapset_id, 'WWW:LINK-1.0-http--link', 'https://www.fao.org/global-soil-partnership/resources/highlights/detail/en/c/1471478/', 'Project webpage' FROM spatial_metadata.mapset WHERE project_id = 'GSOC' AND country_id = 'BT'
+    SELECT DISTINCT mapset_id, 'WWW:LINK-1.0-http--link', 'https://www.fao.org/global-soil-partnership/resources/highlights/detail/en/c/1471478/', 'Project webpage' FROM spatial_metadata.mapset WHERE project_id = 'GSOCSEQ' AND country_id = 'BT'
             UNION
     SELECT m.mapset_id, 'WWW:LINK-1.0-http--link', 'https://storage.googleapis.com/fao-gismgr-glosis-data/DATA/GLOSIS/MAP/'||'GLOSIS.'||l.mapset_id||','||l.file_extension , 'Download '||l.dimension_des 
         FROM spatial_metadata.mapset m
