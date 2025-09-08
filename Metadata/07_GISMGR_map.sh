@@ -78,6 +78,7 @@ update_map() {
     LEFT JOIN spatial_metadata.mapset m ON m.project_id = pj.project_id
     LEFT JOIN spatial_metadata.property pp ON pp.property_id = m.property_id
     WHERE pp.min IS NOT NULL
+      AND m.country_id = 'BT'
     AND m.mapset_id IN (SELECT mapset_id FROM spatial_metadata.layer GROUP BY mapset_id HAVING count(*)=1)
     ORDER BY m.mapset_id;" | \
     while IFS="|" read -r MAP_CODE STYLE_CODE COUNTRY PROPERTY TITLE ABSTRACT UNIT; do

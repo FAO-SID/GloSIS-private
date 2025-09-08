@@ -66,11 +66,17 @@ update_style() {
 
     # Loop soil properties
     psql -h "$DB_HOST" -p "$DB_PORT" -d "$DB_NAME" -U "$DB_USER" -t -A -F"|" -c \
-    "SELECT property_id, name, unit_of_measure_id FROM spatial_metadata.property WHERE min IS NOT NULL ORDER BY property_id" | \
-    while IFS="|" read -r PROPERTY_ID NAME UNIT_ID; do
+    "SELECT m.mapset_id, 
+            m.country_id||' - '||p.name, 
+            m.unit_of_measure_id 
+     FROM spatial_metadata.mapset m
+     LEFT JOIN spatial_metadata.property p ON p.property_id = m.property_id
+     WHERE p.min IS NOT NULL 
+     ORDER BY m.mapset_id" | \
+    while IFS="|" read -r MAPSET_ID NAME UNIT_ID; do
         > "$FILE_JSON"
         echo ""
-        STYLE_CODE="$PROPERTY_ID"
+        STYLE_CODE="$MAPSET_ID"
         echo $STYLE_CODE
 
         # JSON file
@@ -81,7 +87,7 @@ update_style() {
         echo "  }" >> "$FILE_JSON"
 
         # SLD file
-        psql -q -h "$DB_HOST" -p "$DB_PORT" -d "$DB_NAME" -U "$DB_USER" -t -A -c "SELECT sld FROM spatial_metadata.property WHERE property_id = '$PROPERTY_ID'" | sed 's/\\n/\n/g' > $FILE_SLD
+        psql -q -h "$DB_HOST" -p "$DB_PORT" -d "$DB_NAME" -U "$DB_USER" -t -A -c "SELECT sld FROM spatial_metadata.mapset WHERE mapset_id = '$MAPSET_ID'" | sed 's/\\n/\n/g' > $FILE_SLD
 
         # Check if style exists
         RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer $ID_TOKEN" \
