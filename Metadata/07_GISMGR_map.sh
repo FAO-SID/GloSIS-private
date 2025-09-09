@@ -71,7 +71,7 @@ update_map() {
 	    m.mapset_id,
         m.mapset_id style_code,
         UPPER(REPLACE(c.en,' ','_')) country,
-        REPLACE(m.title, 'Organic carbon sequestration potential', 'GSOCseq'),
+        m.title,
         REPLACE(REPLACE(m.abstract, E'\n', '\\n'), E'\r', '\\r') as abstract,
         m.unit_of_measure_id
     FROM spatial_metadata.mapset m
