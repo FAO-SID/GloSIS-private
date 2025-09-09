@@ -10,6 +10,7 @@ WORKSPACE="GLOSIS"
 API_KEY=$(cat /home/carva014/Documents/Arquivo/Trabalho/FAO/API_KEY.txt)
 TOKEN_CACHE_FILE="/home/carva014/Documents/Arquivo/Trabalho/FAO/API_ID_TOKEN.txt"
 FILE_JSON="/home/carva014/Downloads/data.json"
+COUNTRY="${1}"
 
 
 # Function to request a new ID_TOKEN
@@ -66,32 +67,33 @@ update_map() {
 
     # Loop soil properties
     psql -h "$DB_HOST" -p "$DB_PORT" -d "$DB_NAME" -U "$DB_USER" -t -A -F"|" -c \
-    "SELECT m.mapset_id,
-            m.mapset_id style_code,
-            UPPER(REPLACE(c.en,' ','_')) country,
-            UPPER(REPLACE(REPLACE(REPLACE(REPLACE(pp.name,' - ','_'),' ','_'),'(',''),')','')) property,
-            m.title,
-            m.abstract,
-            COALESCE(m.unit_of_measure_id,'unknown') unit
-    FROM spatial_metadata.project pj
+    "SELECT DISTINCT
+	    m.mapset_id,
+        m.mapset_id style_code,
+        UPPER(REPLACE(c.en,' ','_')) country,
+        REPLACE(m.title, 'Organic carbon sequestration potential', 'GSOCseq'),
+        REPLACE(REPLACE(m.abstract, E'\n', '\\n'), E'\r', '\\r') as abstract,
+        m.unit_of_measure_id
+    FROM spatial_metadata.mapset m
+    LEFT JOIN spatial_metadata.project pj ON pj.project_id = m.project_id AND pj.country_id = m.country_id
     LEFT JOIN spatial_metadata.country c ON c.country_id = pj.country_id
-    LEFT JOIN spatial_metadata.mapset m ON m.project_id = pj.project_id
-    LEFT JOIN spatial_metadata.property pp ON pp.property_id = m.property_id
-    WHERE pp.min IS NOT NULL
-      AND m.country_id = 'BT'
-    AND m.mapset_id IN (SELECT mapset_id FROM spatial_metadata.layer GROUP BY mapset_id HAVING count(*)=1)
-    ORDER BY m.mapset_id;" | \
-    while IFS="|" read -r MAP_CODE STYLE_CODE COUNTRY PROPERTY TITLE ABSTRACT UNIT; do
+    WHERE m.country_id = '$COUNTRY'
+      AND m.mapset_id IN (SELECT mapset_id FROM spatial_metadata.layer GROUP BY mapset_id HAVING count(*)=1)
+    ORDER BY m.mapset_id" | \
+    while IFS="|" read -r MAP_CODE STYLE_CODE COUNTRY ABSTRACT TITLE UNIT; do
         > "$FILE_JSON"
         echo ""
         echo $MAP_CODE
+
+        # Properly escape for JSON: quotes and keep newlines as \n
+        ABSTRACT_CLEAN=$(echo "$ABSTRACT" | sed 's/"/\\"/g')
 
         # Create JSON file
         echo "{" >> "$FILE_JSON"
         echo "  \"workspaceCode\": \"${WORKSPACE}\"," >> "$FILE_JSON"
         echo "  \"code\": \"${MAP_CODE}\"," >> "$FILE_JSON"
         echo "  \"caption\": \"${TITLE}\"," >> "$FILE_JSON"
-        echo "  \"description\": \"${ABSTRACT}\"," >> "$FILE_JSON"
+        echo "  \"description\": \"${ABSTRACT_CLEAN}\"," >> "$FILE_JSON"
         echo "  \"extensions\": [" >> "$FILE_JSON"
         echo "       \".tif\" " >> "$FILE_JSON"
         echo "  ], " >> "$FILE_JSON"
@@ -106,9 +108,12 @@ update_map() {
         echo "  \"tilesSize\": null," >> "$FILE_JSON"
         echo "  \"overviewsResamplingAlgorithm\": \"NEAREST\"," >> "$FILE_JSON"
         echo "  \"tags\": [" >> "$FILE_JSON"
-        echo "      \"SOIL\"," >> "$FILE_JSON"
-        echo "      \"DIGITAL_SOIL_MAPPING\", " >> "$FILE_JSON"
-        echo "      \"${PROPERTY}\"," >> "$FILE_JSON"
+        # Loop keywords
+        psql -h "$DB_HOST" -p "$DB_PORT" -d "$DB_NAME" -U "$DB_USER" -t -A -F"|" -c \
+            "SELECT UPPER(REPLACE(UNNEST(keyword_theme),' ','_')) AS tag FROM spatial_metadata.mapset WHERE mapset_id = '$MAP_CODE' ORDER BY 1" | \
+        while IFS="|" read -r TAG; do
+            echo "      \"$TAG\"," >> "$FILE_JSON"
+        done
         echo "      \"${COUNTRY}\"" >> "$FILE_JSON"
         echo "  ]" >> "$FILE_JSON"
         echo "}" >> "$FILE_JSON"

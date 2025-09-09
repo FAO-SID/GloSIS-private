@@ -11,6 +11,7 @@ API_KEY=$(cat /home/carva014/Documents/Arquivo/Trabalho/FAO/API_KEY.txt)
 TOKEN_CACHE_FILE="/home/carva014/Documents/Arquivo/Trabalho/FAO/API_ID_TOKEN.txt"
 FILE_JSON="/home/carva014/Downloads/data.json"
 FILE_SLD="/home/carva014/Downloads/data.sld"
+COUNTRY="${1}"
 
 # Function to request a new ID_TOKEN
 request_new_token() {
@@ -64,14 +65,14 @@ update_style() {
     # Read ID_TOKEN
     source "$TOKEN_CACHE_FILE"
 
-    # Loop soil properties
+    # Loop mapset (simbology per mapset)
     psql -h "$DB_HOST" -p "$DB_PORT" -d "$DB_NAME" -U "$DB_USER" -t -A -F"|" -c \
     "SELECT m.mapset_id, 
             m.country_id||' - '||p.name, 
             m.unit_of_measure_id 
      FROM spatial_metadata.mapset m
      LEFT JOIN spatial_metadata.property p ON p.property_id = m.property_id
-     WHERE p.min IS NOT NULL 
+     WHERE m.country_id = '$COUNTRY'
      ORDER BY m.mapset_id" | \
     while IFS="|" read -r MAPSET_ID NAME UNIT_ID; do
         > "$FILE_JSON"

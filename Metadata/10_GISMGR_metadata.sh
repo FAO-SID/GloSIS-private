@@ -9,7 +9,7 @@ BASE_URL=https://data.apps.fao.org/gismgr/api/v2
 WORKSPACE="GLOSIS"
 FILE_JSON="/home/carva014/Downloads/data.json"
 API_KEY_CKAN=$(cat /home/carva014/Documents/Arquivo/Trabalho/FAO/API_KEY_CKAN.txt)
-COUNTRY="BT"
+COUNTRY="${1}"
 
 
 create_metadata() {

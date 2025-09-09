@@ -8,6 +8,7 @@ DB_NAME="iso19139"
 DB_USER="sis"
 COUNTRY="BT"
 DATA_DIR="/home/carva014/Downloads/FAO/AFACI/$COUNTRY/output"
+COUNTRY="${1}"
 
 
 ## Install gsutil

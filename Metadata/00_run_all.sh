@@ -45,19 +45,19 @@ python $PROJECT_DIR/GloSIS-private/Metadata/05_export.py "$COUNTRY" "GSNM" "$DAT
 python $PROJECT_DIR/GloSIS-private/Metadata/05_export.py "$COUNTRY" "OTHER" "$DATA_DIR/output"
 
 # create or update (if existis) symbology in GISMGR
-$PROJECT_DIR/GloSIS-private/Metadata/06_GISMGR_style.sh
+$PROJECT_DIR/GloSIS-private/Metadata/06_GISMGR_style.sh "$COUNTRY"
 
 # create or update (if existis) map in GISMGR
-$PROJECT_DIR/GloSIS-private/Metadata/07_GISMGR_map.sh
+$PROJECT_DIR/GloSIS-private/Metadata/07_GISMGR_map.sh "$COUNTRY"
 
 # create or update (if existis) mapset in GISMGR
-$PROJECT_DIR/GloSIS-private/Metadata/08_GISMGR_mapset.sh
+$PROJECT_DIR/GloSIS-private/Metadata/08_GISMGR_mapset.sh "$COUNTRY"
 
 # upload GeoTIFF's to bucket
-$PROJECT_DIR/GloSIS-private/Metadata/09_GISMGR_upload.sh
+$PROJECT_DIR/GloSIS-private/Metadata/09_GISMGR_upload.sh "$COUNTRY"
 
 # upload metadata to CKAN
-$PROJECT_DIR/GloSIS-private/Metadata/10_GISMGR_metadata.sh
+$PROJECT_DIR/GloSIS-private/Metadata/10_GISMGR_metadata.sh "$COUNTRY"
 
 # backup database
 pg_dump -h localhost -p 5432 -d iso19139 -U sis -F custom -v -f $PROJECT_DIR/GloSIS-private/Metadata/backups/iso19139_backup_${DATE}.backup
