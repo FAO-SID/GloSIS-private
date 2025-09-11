@@ -17,12 +17,11 @@ create_metadata() {
     source "$API_KEY_CKAN"
 
     # Loop soil properties
-    psql -h "$DB_HOST" -p "$DB_PORT" -d "$DB_NAME" -U "$DB_USER" -t -A -F"|" -c \
-    "SELECT DISTINCT
+    SQL="SELECT DISTINCT
         m.file_identifier,
         m.mapset_id,
         l.case,
-        v.organisation_id,
+        x.organisation_id,
         i.email,
         o.country,
         o.postal_code,
@@ -30,9 +29,10 @@ create_metadata() {
         o.delivery_point,
         i.individual_id
     FROM spatial_metadata.mapset m 
-    LEFT JOIN spatial_metadata.ver_x_org_x_ind v ON v.mapset_id = m.mapset_id
-    LEFT JOIN spatial_metadata.individual i ON i.individual_id = v.individual_id
-    LEFT JOIN spatial_metadata.organisation o ON o.organisation_id = v.organisation_id
+    LEFT JOIN spatial_metadata.project p ON p.country_id = m.country_id AND p.project_id = m.project_id
+    LEFT JOIN spatial_metadata.proj_x_org_x_ind x ON x.country_id = p.country_id AND x.project_id = p.project_id
+    LEFT JOIN spatial_metadata.individual i ON i.individual_id = x.individual_id
+    LEFT JOIN spatial_metadata.organisation o ON o.organisation_id = x.organisation_id
     LEFT JOIN (
                 SELECT mapset_id, 
                     CASE count(*) WHEN 1 THEN 'maps'
@@ -41,7 +41,10 @@ create_metadata() {
                 FROM spatial_metadata.layer
                 GROUP BY mapset_id
     ) l ON l.mapset_id = m.mapset_id
-    ORDER BY m.mapset_id, v.organisation_id" | \
+    WHERE m.country_id = '$COUNTRY'
+    ORDER BY m.mapset_id, x.organisation_id"
+
+    psql -h "$DB_HOST" -p "$DB_PORT" -d "$DB_NAME" -U "$DB_USER" -t -A -F"|" -c "$SQL" | \
     while IFS="|" read -r FILE_IDENTIFIER MAP_CODE CASE ORGANISATION_ID EMAIL COUNTRY POSTAL_CODE CITY DELIVERY_POINT INDIVIDUAL_ID; do
         > "$FILE_JSON"
         echo ""
