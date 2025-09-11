@@ -66,9 +66,8 @@ update_mapset() {
     source "$TOKEN_CACHE_FILE"
 
     # Loop soil properties
-    psql -h "$DB_HOST" -p "$DB_PORT" -d "$DB_NAME" -U "$DB_USER" -t -A -F"|" -c \
-    "SELECT DISTINCT
-	    m.mapset_id,
+    SQL="SELECT DISTINCT
+	    m.mapset_id map_code,
         m.mapset_id style_code,
         UPPER(REPLACE(c.en,' ','_')) country,
         m.title,
@@ -79,7 +78,9 @@ update_mapset() {
     LEFT JOIN spatial_metadata.country c ON c.country_id = pj.country_id
     WHERE m.country_id = '$COUNTRY'
       AND m.mapset_id IN (SELECT mapset_id FROM spatial_metadata.layer GROUP BY mapset_id HAVING count(*)>1)
-    ORDER BY m.mapset_id" | \
+    ORDER BY m.mapset_id"
+
+    psql -h "$DB_HOST" -p "$DB_PORT" -d "$DB_NAME" -U "$DB_USER" -t -A -F"|" -c "$SQL" | \
     while IFS="|" read -r MAP_CODE STYLE_CODE COUNTRY TITLE ABSTRACT UNIT; do
         > "$FILE_JSON"
         echo ""
@@ -103,14 +104,16 @@ update_mapset() {
         echo "  \"scale\": 1," >> "$FILE_JSON"
         echo "  \"offset\": 0," >> "$FILE_JSON"
         echo "  \"dimensions\": [" >> "$FILE_JSON"
-        echo "      \"GLOSIS:DEPTH\"" >> "$FILE_JSON"
+        echo "      \"GLOSIS:DEPTH\"," >> "$FILE_JSON"
+        echo "      \"GLOSIS:STATS\"" >> "$FILE_JSON"
         echo "  ]," >> "$FILE_JSON"
         echo "  \"dimensionMembers\": {" >> "$FILE_JSON"
         echo "      \"rules\": [" >> "$FILE_JSON"
         echo "          {" >> "$FILE_JSON"
-        echo "              \"regex\": \"^${MAP_CODE}-(\\\d{1,3}-\\\d{1,3}).tif$\"," >> "$FILE_JSON"
+        echo "              \"regex\": \"^${MAP_CODE}-(0-30|30-60|30-100|60-100)-(MEAN|SD|UNCT).tif$\"," >> "$FILE_JSON"
         echo "              \"members\": {" >> "$FILE_JSON"
-        echo "                  \"GLOSIS:DEPTH\": \"D-\$1\"" >> "$FILE_JSON"
+        echo "                  \"GLOSIS:DEPTH\": \"D-\$1\"," >> "$FILE_JSON"
+        echo "                  \"GLOSIS:STATS\": \"D-\$2\"" >> "$FILE_JSON"
         echo "              }" >> "$FILE_JSON"
         echo "          }" >> "$FILE_JSON"
         echo "      ]," >> "$FILE_JSON"

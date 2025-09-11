@@ -66,21 +66,22 @@ update_map() {
     source "$TOKEN_CACHE_FILE"
 
     # Loop soil properties
-    psql -h "$DB_HOST" -p "$DB_PORT" -d "$DB_NAME" -U "$DB_USER" -t -A -F"|" -c \
-    "SELECT DISTINCT
-	    m.mapset_id,
+    SQL="SELECT DISTINCT
+	    m.mapset_id map_code,
         m.mapset_id style_code,
         UPPER(REPLACE(c.en,' ','_')) country,
         m.title,
         REPLACE(REPLACE(m.abstract, E'\n', '\\n'), E'\r', '\\r') as abstract,
-        m.unit_of_measure_id
+        COALESCE(m.unit_of_measure_id,'unknown') unit
     FROM spatial_metadata.mapset m
     LEFT JOIN spatial_metadata.project pj ON pj.project_id = m.project_id AND pj.country_id = m.country_id
     LEFT JOIN spatial_metadata.country c ON c.country_id = pj.country_id
     WHERE m.country_id = '$COUNTRY'
       AND m.mapset_id IN (SELECT mapset_id FROM spatial_metadata.layer GROUP BY mapset_id HAVING count(*)=1)
-    ORDER BY m.mapset_id" | \
-    while IFS="|" read -r MAP_CODE STYLE_CODE COUNTRY ABSTRACT TITLE UNIT; do
+    ORDER BY m.mapset_id"
+
+    psql -h "$DB_HOST" -p "$DB_PORT" -d "$DB_NAME" -U "$DB_USER" -t -A -F"|" -c "$SQL" | \
+    while IFS="|" read -r MAP_CODE STYLE_CODE COUNTRY TITLE ABSTRACT UNIT; do
         > "$FILE_JSON"
         echo ""
         echo $MAP_CODE
