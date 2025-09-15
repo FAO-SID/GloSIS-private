@@ -17,7 +17,7 @@ create_metadata() {
     source "$API_KEY_CKAN"
 
     # Loop soil properties
-    SQL="SELECT 
+    SQL="SELECT DISTINCT
             m.mapset_id,
             l.case,
             m.other_constraints
@@ -31,6 +31,7 @@ create_metadata() {
                     GROUP BY mapset_id, dimension_depth, dimension_stats
                   ) l ON l.mapset_id = m.mapset_id
         WHERE m.country_id = '$COUNTRY'
+          AND m.mapset_id = 'BT-GSNM-BASAT-2024'
         ORDER BY m.mapset_id"
 
     psql -h "$DB_HOST" -p "$DB_PORT" -d "$DB_NAME" -U "$DB_USER" -t -A -F"|" -c "$SQL" | \
@@ -47,8 +48,17 @@ create_metadata() {
         echo "\"map_type\":\"${CASE}\"," >> "$FILE_JSON"
         echo "\"ckan_url\": \"https://data.apps.fao.org/catalog\"," >> "$FILE_JSON"
         echo "\"user_api_key\": \"${API_KEY_CKAN}\"," >> "$FILE_JSON"
-        echo "\"resources\":" >> "$FILE_JSON"
+        echo "\"resources\": [" >> "$FILE_JSON"
 
+        # First, count the total number of records
+        COUNT_SQL="SELECT count(*)
+            FROM spatial_metadata.mapset m 
+            LEFT JOIN spatial_metadata.project p ON p.country_id = m.country_id AND p.project_id = m.project_id
+            LEFT JOIN spatial_metadata.proj_x_org_x_ind x ON x.country_id = p.country_id AND x.project_id = p.project_id
+            LEFT JOIN spatial_metadata.individual i ON i.individual_id = x.individual_id
+            WHERE m.mapset_id = '$MAP_CODE'"
+        TOTAL_RECORDS=$(psql -h "$DB_HOST" -p "$DB_PORT" -d "$DB_NAME" -U "$DB_USER" -t -A -c "$COUNT_SQL")
+        
         # Loop organisation and individual
         SQL="SELECT
                 x.organisation_id,
@@ -67,13 +77,14 @@ create_metadata() {
             LEFT JOIN spatial_metadata.organisation o ON o.organisation_id = x.organisation_id
             WHERE m.mapset_id = '$MAP_CODE'"
 
+        CURRENT_RECORD=0
         psql -h "$DB_HOST" -p "$DB_PORT" -d "$DB_NAME" -U "$DB_USER" -t -A -F"|" -c "$SQL" | \
         while IFS="|" read -r ORGANISATION_ID EMAIL COUNTRY POSTAL_CODE CITY DELIVERY_POINT INDIVIDUAL_ID TAG ROLE; do
-            echo "  [" >> "$FILE_JSON"
+            CURRENT_RECORD=$((CURRENT_RECORD + 1))
             echo "    {" >> "$FILE_JSON"
             echo "    \"jsonschema_body\": {" >> "$FILE_JSON"
             echo "        \"organisationName\": \"${ORGANISATION_ID}\"," >> "$FILE_JSON"
-            echo "        \"role\": \"${TAG}\"," >> "$FILE_JSON"
+            echo "        \"role\": \"pointOfContact\"," >> "$FILE_JSON"
             echo "        \"contactInfo\": {" >> "$FILE_JSON"
             echo "        \"phone\": {" >> "$FILE_JSON"
             echo "            \"voice\": \"\"" >> "$FILE_JSON"
@@ -88,28 +99,39 @@ create_metadata() {
             echo "        }," >> "$FILE_JSON"
             echo "        \"individualName\": \"${INDIVIDUAL_ID}\"" >> "$FILE_JSON"
             echo "    }," >> "$FILE_JSON"
-            echo "    \"description\": \"${TAG}: ${ORGANISATION_ID}\"," >> "$FILE_JSON"
+            echo "    \"description\": \"pointOfContact: ${INDIVIDUAL_ID}\"," >> "$FILE_JSON"
             echo "    \"jsonschema_opt\": {}," >> "$FILE_JSON"
+            if [ "$ROLE" = "author" ]; then
+                ROLE="resource-contact"
+            elif [ "$ROLE" = "resourceProvider" ]; then
+                ROLE="metadata-contact"
+            fi
             echo "    \"jsonschema_type\": \"${ROLE}\"," >> "$FILE_JSON"
             echo "    \"name\": \"${ORGANISATION_ID}\"" >> "$FILE_JSON"
-            echo "    }" >> "$FILE_JSON"
-            echo "  ]," >> "$FILE_JSON"
+            
+            # Add comma only if not the last record
+            if [ "$CURRENT_RECORD" -lt "$TOTAL_RECORDS" ]; then
+                echo "    }," >> "$FILE_JSON"
+            else
+                echo "    }" >> "$FILE_JSON"
+            fi
         done
+        echo "  ]" >> "$FILE_JSON"
         echo "}" >> "$FILE_JSON"
 
 
 
-        # # Upload or Update metadata
-        # curl -X POST \
-        #     -H "Content-Type: application/json" \
-        #     -d @$FILE_JSON \
-        #     "https://data.review.fao.org/geospatial/etl/ckan/gismgr"
+        # Upload or Update metadata COMMENTED WHILE TESTING
+        curl -X POST \
+            -H "Content-Type: application/json" \
+            -d @$FILE_JSON \
+            "https://data.review.fao.org/geospatial/etl/ckan/gismgr"
 
-        # if [ $? -eq 0 ]; then
-        #     echo "Successfully processed mapet: $MAP_CODE"
-        # else
-        #     echo "Failed to process mapet: $MAP_CODE"
-        # fi
+        if [ $? -eq 0 ]; then
+            echo "Successfully processed mapet: $MAP_CODE"
+        else
+            echo "Failed to process mapet: $MAP_CODE"
+        fi
 
     done
 }

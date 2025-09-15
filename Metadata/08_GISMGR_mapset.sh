@@ -122,15 +122,30 @@ update_mapset() {
         echo "      \"lookUp\": null" >> "$FILE_JSON"
         echo "  }," >> "$FILE_JSON"
         echo "  \"styleRules\": null," >> "$FILE_JSON"
+
+        # First, count the total number of records
+        COUNT_SQL="SELECT count(*) FROM spatial_metadata.class WHERE mapset_id = '$MAP_CODE'"
+        TOTAL_RECORDS=$(psql -h "$DB_HOST" -p "$DB_PORT" -d "$DB_NAME" -U "$DB_USER" -t -A -c "$COUNT_SQL")
+
         # Loop classes if the case
         if [ "$UNIT" = "class" ]; then
             echo "  \"classes\": {" >> "$FILE_JSON"
+            CURRENT_RECORD=0
             SQL="SELECT value, label FROM spatial_metadata.class WHERE mapset_id = '$MAP_CODE' ORDER BY value"
             psql -h "$DB_HOST" -p "$DB_PORT" -d "$DB_NAME" -U "$DB_USER" -t -A -F"|" -c "$SQL" | \
             while IFS="|" read -r VALUE LABEL; do
-                echo "      \"${VALUE}\": {\"caption\": \"${LABEL}\", \"description\": \"${LABEL}\"}," >> "$FILE_JSON"
+                CURRENT_RECORD=$((CURRENT_RECORD + 1))
+                echo "      \"${VALUE}\": {" >> "$FILE_JSON"
+                echo "            \"caption\": \"${LABEL}\"," >> "$FILE_JSON"
+                echo "            \"description\": \"${LABEL}\"" >> "$FILE_JSON"
+                
+                # Add comma only if not the last record
+                if [ "$CURRENT_RECORD" -lt "$TOTAL_RECORDS" ]; then
+                    echo "           }," >> "$FILE_JSON"
+                else
+                    echo "           }" >> "$FILE_JSON"
+                fi
             done
-        echo "      \"-999999\": {\"caption\": \"DELETE ME\", \"description\": null}" >> "$FILE_JSON"
         echo "    }," >> "$FILE_JSON"
         else
             echo "  \"classes\": null," >> "$FILE_JSON"
@@ -140,6 +155,7 @@ update_mapset() {
         echo "  \"tilesSize\": null," >> "$FILE_JSON"
         echo "  \"overviewsResamplingAlgorithm\": \"NEAREST\"," >> "$FILE_JSON"
         echo "  \"tags\": [" >> "$FILE_JSON"
+        
         # Loop keywords
         psql -h "$DB_HOST" -p "$DB_PORT" -d "$DB_NAME" -U "$DB_USER" -t -A -F"|" -c \
             "SELECT UPPER(REPLACE(UNNEST(keyword_theme),' ','_')) AS tag FROM spatial_metadata.mapset WHERE mapset_id = '$MAP_CODE' ORDER BY 1" | \
