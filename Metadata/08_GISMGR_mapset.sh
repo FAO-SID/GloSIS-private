@@ -78,7 +78,8 @@ update_mapset() {
     LEFT JOIN spatial_metadata.project pj ON pj.project_id = m.project_id AND pj.country_id = m.country_id
     LEFT JOIN spatial_metadata.country c ON c.country_id = pj.country_id
     WHERE m.country_id = '$COUNTRY'
-      AND (l.dimension_depth IS NOT NULL OR l.dimension_stats IS NOT NULL)
+      AND l.dimension_depth IS NOT NULL
+      AND l.dimension_stats IS NOT NULL
     ORDER BY m.mapset_id"
 
     psql -h "$DB_HOST" -p "$DB_PORT" -d "$DB_NAME" -U "$DB_USER" -t -A -F"|" -c "$SQL" | \
@@ -111,7 +112,7 @@ update_mapset() {
         echo "  \"dimensionMembers\": {" >> "$FILE_JSON"
         echo "      \"rules\": [" >> "$FILE_JSON"
         echo "          {" >> "$FILE_JSON"
-        echo "              \"regex\": \"^${MAP_CODE}-(0-30|30-60|30-100|60-100)-(MEAN|SD|UNCT).tif$\"," >> "$FILE_JSON"
+        echo "              \"regex\": \"^${MAP_CODE}-(0-0|0-30|30-60|30-100|60-100)-(MEAN|SDEV|UNCT).tif$\"," >> "$FILE_JSON"
         echo "              \"members\": {" >> "$FILE_JSON"
         echo "                  \"GLOSIS:DEPTH\": \"D-\$1\"," >> "$FILE_JSON"
         echo "                  \"GLOSIS:STATS\": \"D-\$2\"" >> "$FILE_JSON"
@@ -121,7 +122,19 @@ update_mapset() {
         echo "      \"lookUp\": null" >> "$FILE_JSON"
         echo "  }," >> "$FILE_JSON"
         echo "  \"styleRules\": null," >> "$FILE_JSON"
-        echo "  \"classes\": null," >> "$FILE_JSON"
+        # Loop classes if the case
+        if [ "$UNIT" = "class" ]; then
+            echo "  \"classes\": {" >> "$FILE_JSON"
+            SQL="SELECT value, label FROM spatial_metadata.class WHERE mapset_id = '$MAP_CODE' ORDER BY value"
+            psql -h "$DB_HOST" -p "$DB_PORT" -d "$DB_NAME" -U "$DB_USER" -t -A -F"|" -c "$SQL" | \
+            while IFS="|" read -r VALUE LABEL; do
+                echo "      \"${VALUE}\": {\"caption\": \"${LABEL}\", \"description\": \"${LABEL}\"}," >> "$FILE_JSON"
+            done
+        echo "      \"-999999\": {\"caption\": \"DELETE ME\", \"description\": null}" >> "$FILE_JSON"
+        echo "    }," >> "$FILE_JSON"
+        else
+            echo "  \"classes\": null," >> "$FILE_JSON"
+        fi
         echo "  \"flags\": null," >> "$FILE_JSON"
         echo "  \"bigTiff\": null," >> "$FILE_JSON"
         echo "  \"tilesSize\": null," >> "$FILE_JSON"

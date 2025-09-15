@@ -174,13 +174,10 @@ INSERT INTO spatial_metadata.url (mapset_id, protocol, url, url_name)
     SELECT mapset_id, 'OGC:WMTS', 'http://localhost:8082/?map=/etc/mapserver/'||layer_id||'.map&amp;SERVICE=WMS&amp;REQUEST=GetCapabilities', 'WMTS (Bhutan SIS)' FROM spatial_metadata.layer WHERE layer_id LIKE 'BT-%'
     ON CONFLICT (mapset_id, protocol, url) DO NOTHING;
 
--- https://data.apps.fao.org/map/wmts/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=fao-gismgr%2FGLOSIS%2Fmapsets%2FBT-GSNM-CAEXC-2024&STYLE=BT-GSNM-CAEXC-2024&FORMAT=image%2Fjpeg&TILEMATRIXSET=EPSG%3A3857&TILEMATRIX=11&DEPTH=D-0-30&TILEROW=857&TILECOL=1538
--- https://data.apps.fao.org/map/wmts/wmts?SERVICE=WMTS&REQUEST=GetFeatureInfo&VERSION=1.0.0&LAYER=fao-gismgr%2FGLOSIS%2Fmapsets%2FBT-GSNM-CAEXC-2024&STYLE=BT-GSNM-CAEXC-2024&INFOFORMAT=application%2Fjson&TILEMATRIXSET=EPSG%3A3857&TILEMATRIX=10&DEPTH=D-0-30&TILEROW=429&TILECOL=767&I=199&J=51
-
 
 -- categorical class
 INSERT INTO spatial_metadata."class" (mapset_id, value, code, "label", color, opacity, publish) VALUES
-('BT-OTHER-CLAWRB-2024', -9999, '-9999', '-9999 - No Data', '#000000',1, 't'),
+('BT-OTHER-CLAWRB-2024', -9999, '-9999', 'No Data', '#000000',1, 't'),
 ('BT-OTHER-CLAWRB-2024', 1, '1', '1 - Anthraquic Cambisols', '#800080',1, 't'),
 ('BT-OTHER-CLAWRB-2024', 2, '2', '2 - Dystric Cambisols', '#f84040',1, 't'),
 ('BT-OTHER-CLAWRB-2024', 3, '3', '3 - Eutric Cambisols', '#da70d6',1, 't'),

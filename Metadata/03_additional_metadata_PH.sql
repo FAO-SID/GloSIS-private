@@ -166,7 +166,7 @@ INSERT INTO spatial_metadata.url (mapset_id, protocol, url, url_name)
 
 -- categorical class
 INSERT INTO spatial_metadata."class" (mapset_id, value, code, "label", color, opacity, publish) VALUES
-('PH-GSAS-SALT-2020', -9999, '-9999', '-9999 - No Data', '#000000',1, 't'),
+('PH-GSAS-SALT-2020', -9999, '-9999', 'No Data', '#000000',1, 't'),
 ('PH-GSAS-SALT-2020', 1, '1', '1 - No salinity', '#ffffff',1, 't'),
 ('PH-GSAS-SALT-2020', 2, '2', '2 - Slight Salinity', '#90ee90',1, 't'),
 ('PH-GSAS-SALT-2020', 3, '3', '3 - Slight Sodicity', '#add8e6',1, 't')
