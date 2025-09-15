@@ -379,8 +379,8 @@ GRANT SELECT ON TABLE spatial_metadata.property TO sis_r;
 
 CREATE TABLE spatial_metadata.layer (
   mapset_id text NOT NULL,
-  dim_depth text, -- dimension_des
-  dim_stats text, -- MEAN / SDEV / UNCT / X
+  dimension_depth text, -- dimension_des
+  dimension_stats text, -- MEAN / SDEV / UNCT / X
   file_path text NOT NULL,
   layer_id text NOT NULL,
   file_extension text,
@@ -417,7 +417,7 @@ CREATE TABLE spatial_metadata.layer (
   metadata text[],
   map text,
   CONSTRAINT layer_distance_uom_check CHECK ((distance_uom = ANY (ARRAY['m', 'km', 'deg']))),
-  CONSTRAINT layer_dim_stats_check CHECK ((dim_stats = ANY (ARRAY['MEAN', 'SDEV', 'UNCT', 'X'])))
+  CONSTRAINT layer_dimension_stats_check CHECK ((dimension_stats = ANY (ARRAY['MEAN', 'SDEV', 'UNCT', 'X'])))
 );
 ALTER TABLE spatial_metadata.layer OWNER TO sis;
 GRANT SELECT ON TABLE spatial_metadata.layer TO sis_r;

@@ -140,21 +140,42 @@ INSERT INTO spatial_metadata.url (mapset_id, protocol, url, url_name)
     -- SELECT DISTINCT mapset_id, 'WWW:LINK-1.0-http--link', url_paper, 'Scientific paper' FROM spatial_metadata.metadata_manual WHERE url_paper IS NOT NULL
     --     UNION
     SELECT DISTINCT mapset_id, 'WWW:LINK-1.0-http--link', 'https://www.fao.org/global-soil-partnership/resources/highlights/detail/en/c/1471478/', 'Project webpage' FROM spatial_metadata.mapset WHERE project_id = 'GSOCSEQ' AND country_id = 'BT'
-            UNION
-    SELECT m.mapset_id, 'WWW:LINK-1.0-http--link', 'https://storage.googleapis.com/fao-gismgr-glosis-data/DATA/GLOSIS/MAP/'||'GLOSIS.'||l.mapset_id||','||l.file_extension , 'Download '||l.dimension_des 
+      UNION
+    SELECT m.mapset_id, 'WWW:LINK-1.0-http--link', 'https://storage.googleapis.com/fao-gismgr-glosis-data/DATA/GLOSIS/MAP/GLOSIS.'||l.mapset_id||','||l.file_extension , 'Download'
         FROM spatial_metadata.mapset m
         LEFT JOIN spatial_metadata.layer l ON l.mapset_id = m.mapset_id
-        WHERE l.mapset_id IN (SELECT mapset_id FROM spatial_metadata.layer GROUP BY mapset_id HAVING count(*)=1) AND m.country_id = 'BT'
-            UNION
-    SELECT m.mapset_id, 'WWW:LINK-1.0-http--link', 'https://storage.googleapis.com/fao-gismgr-glosis-data/DATA/GLOSIS/MAPSET/'||l.mapset_id||'/GLOSIS.'||l.mapset_id||'.D-'||l.dimension_des||'.'||l.file_extension , 'Download '||l.dimension_des 
+        WHERE m.country_id = 'BT'
+          AND l.dimension_depth IS NULL 
+          AND l.dimension_stats IS NULL
+      UNION
+    SELECT m.mapset_id, 'WWW:LINK-1.0-http--link', 'https://storage.googleapis.com/fao-gismgr-glosis-data/DATA/GLOSIS/MAPSET/'||l.mapset_id||'/GLOSIS.'||l.mapset_id||'.D-'||l.dimension_stats||'.'||l.file_extension , 'Download '||l.dimension_stats
         FROM spatial_metadata.mapset m
         LEFT JOIN spatial_metadata.layer l ON l.mapset_id = m.mapset_id
-        WHERE l.mapset_id IN (SELECT mapset_id FROM spatial_metadata.layer GROUP BY mapset_id HAVING count(*)>1) AND m.country_id = 'BT'
-            UNION
+        WHERE m.country_id = 'BT'
+          AND l.dimension_depth IS NULL
+          AND l.dimension_stats IS NOT NULL
+      UNION
+    SELECT m.mapset_id, 'WWW:LINK-1.0-http--link', 'https://storage.googleapis.com/fao-gismgr-glosis-data/DATA/GLOSIS/MAPSET/'||l.mapset_id||'/GLOSIS.'||l.mapset_id||'.D-'||l.dimension_depth||'.'||l.file_extension , 'Download '||l.dimension_depth
+        FROM spatial_metadata.mapset m
+        LEFT JOIN spatial_metadata.layer l ON l.mapset_id = m.mapset_id
+        WHERE m.country_id = 'BT'
+          AND l.dimension_depth IS NOT NULL
+          AND l.dimension_stats IS NULL
+      UNION
+    SELECT m.mapset_id, 'WWW:LINK-1.0-http--link', 'https://storage.googleapis.com/fao-gismgr-glosis-data/DATA/GLOSIS/MAPSET/'||l.mapset_id||'/GLOSIS.'||l.mapset_id||'.D-'||l.dimension_depth||'.D-'||l.dimension_stats||'.'||l.file_extension , 'Download '||l.dimension_depth||' '||l.dimension_stats
+        FROM spatial_metadata.mapset m
+        LEFT JOIN spatial_metadata.layer l ON l.mapset_id = m.mapset_id
+        WHERE m.country_id = 'BT'
+          AND l.dimension_depth IS NOT NULL
+          AND l.dimension_stats IS NOT NULL
+      UNION
     SELECT mapset_id, 'OGC:WMTS', 'https://data.apps.fao.org/map/wmts/wmts?service=WMTS&amp;request=GetCapabilities&amp;version=1.0.0&amp;workspace=GLOSIS', 'WMTS (FAO)' FROM spatial_metadata.mapset WHERE country_id = 'BT'
-        UNION
+      UNION
     SELECT mapset_id, 'OGC:WMTS', 'http://localhost:8082/?map=/etc/mapserver/'||layer_id||'.map&amp;SERVICE=WMS&amp;REQUEST=GetCapabilities', 'WMTS (Bhutan SIS)' FROM spatial_metadata.layer WHERE layer_id LIKE 'BT-%'
     ON CONFLICT (mapset_id, protocol, url) DO NOTHING;
+
+-- https://data.apps.fao.org/map/wmts/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=fao-gismgr%2FGLOSIS%2Fmapsets%2FBT-GSNM-CAEXC-2024&STYLE=BT-GSNM-CAEXC-2024&FORMAT=image%2Fjpeg&TILEMATRIXSET=EPSG%3A3857&TILEMATRIX=11&DEPTH=D-0-30&TILEROW=857&TILECOL=1538
+-- https://data.apps.fao.org/map/wmts/wmts?SERVICE=WMTS&REQUEST=GetFeatureInfo&VERSION=1.0.0&LAYER=fao-gismgr%2FGLOSIS%2Fmapsets%2FBT-GSNM-CAEXC-2024&STYLE=BT-GSNM-CAEXC-2024&INFOFORMAT=application%2Fjson&TILEMATRIXSET=EPSG%3A3857&TILEMATRIX=10&DEPTH=D-0-30&TILEROW=429&TILECOL=767&I=199&J=51
 
 
 -- categorical class

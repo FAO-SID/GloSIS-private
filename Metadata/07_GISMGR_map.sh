@@ -74,10 +74,12 @@ update_map() {
         REPLACE(REPLACE(m.abstract, E'\n', '\\n'), E'\r', '\\r') as abstract,
         COALESCE(m.unit_of_measure_id,'unknown') unit
     FROM spatial_metadata.mapset m
+    LEFT JOIN spatial_metadata.layer l ON l.mapset_id = m.mapset_id
     LEFT JOIN spatial_metadata.project pj ON pj.project_id = m.project_id AND pj.country_id = m.country_id
     LEFT JOIN spatial_metadata.country c ON c.country_id = pj.country_id
     WHERE m.country_id = '$COUNTRY'
-      AND m.mapset_id IN (SELECT mapset_id FROM spatial_metadata.layer GROUP BY mapset_id HAVING count(*)=1)
+      AND l.dimension_depth IS NULL 
+      AND l.dimension_stats IS NULL
     ORDER BY m.mapset_id"
 
     psql -h "$DB_HOST" -p "$DB_PORT" -d "$DB_NAME" -U "$DB_USER" -t -A -F"|" -c "$SQL" | \

@@ -130,15 +130,33 @@ INSERT INTO spatial_metadata.url (mapset_id, protocol, url, url_name)
     --     UNION
     SELECT DISTINCT mapset_id, 'WWW:LINK-1.0-http--link', 'https://www.fao.org/global-soil-partnership/resources/highlights/detail/en/c/1471478/', 'Project webpage' FROM spatial_metadata.mapset WHERE project_id = 'GSOCSEQ' AND country_id = 'PH'
             UNION
-    SELECT m.mapset_id, 'WWW:LINK-1.0-http--link', 'https://storage.googleapis.com/fao-gismgr-glosis-data/DATA/GLOSIS/MAP/'||'GLOSIS.'||l.mapset_id||','||l.file_extension , 'Download '||l.dimension_des 
+    SELECT m.mapset_id, 'WWW:LINK-1.0-http--link', 'https://storage.googleapis.com/fao-gismgr-glosis-data/DATA/GLOSIS/MAP/GLOSIS.'||l.mapset_id||','||l.file_extension , 'Download '||l.dimension_des
         FROM spatial_metadata.mapset m
         LEFT JOIN spatial_metadata.layer l ON l.mapset_id = m.mapset_id
-        WHERE l.mapset_id IN (SELECT mapset_id FROM spatial_metadata.layer GROUP BY mapset_id HAVING count(*)=1) AND m.country_id = 'PH'
-            UNION
-    SELECT m.mapset_id, 'WWW:LINK-1.0-http--link', 'https://storage.googleapis.com/fao-gismgr-glosis-data/DATA/GLOSIS/MAPSET/'||l.mapset_id||'/GLOSIS.'||l.mapset_id||'.D-'||l.dimension_des||'.'||l.file_extension , 'Download '||l.dimension_des 
+        WHERE m.country_id = 'PH'
+          AND l.dimension_depth IS NULL
+          AND l.dimension_stats IS NULL
+      UNION
+    SELECT m.mapset_id, 'WWW:LINK-1.0-http--link', 'https://storage.googleapis.com/fao-gismgr-glosis-data/DATA/GLOSIS/MAPSET/'||l.mapset_id||'/GLOSIS.'||l.mapset_id||'.D-'||l.dimension_stats||'.'||l.file_extension , 'Download '||l.dimension_des
         FROM spatial_metadata.mapset m
         LEFT JOIN spatial_metadata.layer l ON l.mapset_id = m.mapset_id
-        WHERE l.mapset_id IN (SELECT mapset_id FROM spatial_metadata.layer GROUP BY mapset_id HAVING count(*)>1) AND m.country_id = 'PH'
+        WHERE m.country_id = 'PH'
+          AND l.dimension_depth IS NULL
+          AND l.dimension_stats IS NOT NULL
+      UNION
+    SELECT m.mapset_id, 'WWW:LINK-1.0-http--link', 'https://storage.googleapis.com/fao-gismgr-glosis-data/DATA/GLOSIS/MAPSET/'||l.mapset_id||'/GLOSIS.'||l.mapset_id||'.D-'||l.dimension_depth||'.'||l.file_extension , 'Download '||l.dimension_des
+        FROM spatial_metadata.mapset m
+        LEFT JOIN spatial_metadata.layer l ON l.mapset_id = m.mapset_id
+        WHERE m.country_id = 'PH'
+          AND l.dimension_depth IS NOT NULL
+          AND l.dimension_stats IS NULL
+      UNION
+    SELECT m.mapset_id, 'WWW:LINK-1.0-http--link', 'https://storage.googleapis.com/fao-gismgr-glosis-data/DATA/GLOSIS/MAPSET/'||l.mapset_id||'/GLOSIS.'||l.mapset_id||'.D-'||l.dimension_depth||'.D-'||l.dimension_stats||'.'||l.file_extension , 'Download '||l.dimension_des
+        FROM spatial_metadata.mapset m
+        LEFT JOIN spatial_metadata.layer l ON l.mapset_id = m.mapset_id
+        WHERE m.country_id = 'PH'
+          AND l.dimension_depth IS NOT NULL
+          AND l.dimension_stats IS NOT NULL
             UNION
     SELECT mapset_id, 'OGC:WMTS', 'https://data.apps.fao.org/map/wmts/wmts?service=WMTS&amp;request=GetCapabilities&amp;version=1.0.0&amp;workspace=GLOSIS', 'WMTS (FAO)' FROM spatial_metadata.mapset WHERE country_id = 'PH'
         UNION
@@ -153,18 +171,3 @@ INSERT INTO spatial_metadata."class" (mapset_id, value, code, "label", color, op
 ('PH-GSAS-SALT-2020', 2, '2', '2 - Slight Salinity', '#90ee90',1, 't'),
 ('PH-GSAS-SALT-2020', 3, '3', '3 - Slight Sodicity', '#add8e6',1, 't')
  ON CONFLICT (mapset_id, value) DO NOTHING;
-
-
--- INSERT INTO spatial_metadata."class" (mapset_id, value, code, "label", color, opacity, publish) VALUES
--- ('SALT', -1.0, '-1', 'No Data', '#000000', 1, 't'),
--- ('SALT', 4.0, '4', '4 - None', '#ffffff', 1, 't'),
--- ('SALT', 6.0, '6', '6 - Slight Salinity', '#90ee90', 1, 't'),
--- ('SALT', 2.0, '2', '2 - Moderate Salinity', '#f5deb3', 1, 't'),
--- ('SALT', 8.0, '8', '8 - Strong Salinity', '#f08080', 1, 't'),
--- ('SALT', 10.0, '10', '10 - Very Strong Salinity', '#f84040', 1, 't'),
--- ('SALT', 1.0, '1', '1 - Extreme Salinity', '#ff0000', 1, 't'),
--- ('SALT', 5.0, '5', '5 - Saline Sodic', '#00ffff', 1, 't'),
--- ('SALT', 7.0, '7', '7 - Slight Sodicity', '#add8e6', 1, 't'),
--- ('SALT', 3.0, '3', '3 - Moderate Sodicity', '#ee82ee', 1, 't'),
--- ('SALT', 9.0, '9', '9 - Strong Sodicity', '#da70d6', 1, 't'),
--- ('SALT', 11.0, '11', '11 - Very Strong Sodicity', '#800080', 1, 't');

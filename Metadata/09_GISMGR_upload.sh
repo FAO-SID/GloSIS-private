@@ -27,8 +27,9 @@ psql -h "$DB_HOST" -p "$DB_PORT" -d "$DB_NAME" -U "$DB_USER" -t -A -F"|" -c \
     "SELECT m.mapset_id, l.layer_id||'.tif'
     FROM spatial_metadata.mapset m
     LEFT JOIN spatial_metadata.layer l ON l.mapset_id = m.mapset_id
-    WHERE m.mapset_id IN (SELECT mapset_id FROM spatial_metadata.layer GROUP BY mapset_id HAVING count(*)=1)
-      AND m.country_id = '$COUNTRY'
+    WHERE m.country_id = '$COUNTRY'
+      AND l.dimension_depth IS NULL 
+      AND l.dimension_stats IS NULL
     ORDER BY l.layer_id" | \
 while IFS="|" read -r MAPSET FILE_NAME; do
     echo $FILE_NAME
@@ -42,8 +43,8 @@ psql -h "$DB_HOST" -p "$DB_PORT" -d "$DB_NAME" -U "$DB_USER" -t -A -F"|" -c \
     "SELECT m.mapset_id, l.layer_id||'.tif'
     FROM spatial_metadata.mapset m
     LEFT JOIN spatial_metadata.layer l ON l.mapset_id = m.mapset_id
-    WHERE m.mapset_id IN (SELECT mapset_id FROM spatial_metadata.layer GROUP BY mapset_id HAVING count(*)>1)
-      AND m.country_id = '$COUNTRY'
+    WHERE m.country_id = '$COUNTRY'
+      AND (l.dimension_depth IS NOT NULL OR l.dimension_stats IS NOT NULL)
     ORDER BY l.layer_id" | \
 while IFS="|" read -r MAPSET FILE_NAME; do
     echo $FILE_NAME

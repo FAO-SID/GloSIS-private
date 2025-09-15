@@ -62,8 +62,9 @@ def spatial_data_scan(INPUT_DIR):
                 print (file_name)
                 sql = f"INSERT INTO spatial_metadata.mapset(country_id, project_id, property_id, mapset_id) VALUES('{country_id}', '{project_id}', '{property_id}', '{mapset_id}') ON CONFLICT (mapset_id) DO NOTHING"
                 cur.execute(sql)
-                dimension_des = layer_id.split('-')[4] + '-' + layer_id.split('-')[5]
-                sql = f"INSERT INTO spatial_metadata.layer(mapset_id, dimension_des, file_path, layer_id, file_extension, file_size, file_size_pretty) VALUES('{mapset_id}', '{dimension_des}','{file_path}','{layer_id}','{file_extension}','{file_size}','{file_size_pretty}')"
+                dimension_depth = layer_id.split('-')[4] + '-' + layer_id.split('-')[5]
+                dimension_stats = layer_id.split('-')[6]
+                sql = f"INSERT INTO spatial_metadata.layer(mapset_id, dimension_depth, dimension_stats, file_path, layer_id, file_extension, file_size, file_size_pretty) VALUES('{mapset_id}', '{dimension_depth}', '{dimension_stats}','{file_path}','{layer_id}','{file_extension}','{file_size}','{file_size_pretty}')"
                 cur.execute(sql)
 
                 # open file with GDAL
