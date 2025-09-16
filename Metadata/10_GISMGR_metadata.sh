@@ -14,7 +14,6 @@ COUNTRY="${1}"
 
 create_metadata() {
     # Read ID_TOKEN
-    source "$API_KEY_CKAN"
 
     # Loop soil properties
     SQL="SELECT DISTINCT
@@ -31,7 +30,6 @@ create_metadata() {
                     GROUP BY mapset_id, dimension_depth, dimension_stats
                   ) l ON l.mapset_id = m.mapset_id
         WHERE m.country_id = '$COUNTRY'
-          AND m.mapset_id = 'BT-GSNM-BASAT-2024'
         ORDER BY m.mapset_id"
 
     psql -h "$DB_HOST" -p "$DB_PORT" -d "$DB_NAME" -U "$DB_USER" -t -A -F"|" -c "$SQL" | \
@@ -45,6 +43,7 @@ create_metadata() {
         echo "\"workspace_id\": \"${WORKSPACE}\"," >> "$FILE_JSON"
         echo "\"map_id\": \"${MAP_CODE}\"," >> "$FILE_JSON"
         echo "\"owner_org\": \"glosis\"," >> "$FILE_JSON"
+        echo "\"license_code\": \"${OTHER_CONSTRAINTS}\"," >> "$FILE_JSON"
         echo "\"map_type\":\"${CASE}\"," >> "$FILE_JSON"
         echo "\"ckan_url\": \"https://data.apps.fao.org/catalog\"," >> "$FILE_JSON"
         echo "\"user_api_key\": \"${API_KEY_CKAN}\"," >> "$FILE_JSON"
@@ -121,16 +120,16 @@ create_metadata() {
 
 
 
-        # Upload or Update metadata COMMENTED WHILE TESTING
+        # Upload metadata (does not update if exists!)
         curl -X POST \
             -H "Content-Type: application/json" \
             -d @$FILE_JSON \
             "https://data.review.fao.org/geospatial/etl/ckan/gismgr"
 
         if [ $? -eq 0 ]; then
-            echo "Successfully processed mapet: $MAP_CODE"
+            echo " Successfully processed"
         else
-            echo "Failed to process mapet: $MAP_CODE"
+            echo " Failed to process"
         fi
 
     done

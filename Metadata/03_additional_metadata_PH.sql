@@ -43,7 +43,7 @@ WHERE country_id = 'PH'
 UPDATE spatial_metadata.mapset
 SET abstract = 'This dataset was developed under the AFACI project - Development of the Soil Atlas of Asia and National Soil Information Systems (2019-2023). The project supported AFACI member countries in collecting, harmonizing, and managing national soil data to strengthen evidence-based decision making for sustainable soil management. Activities included rescuing legacy soil data, harmonizing national soil maps for the Soil Atlas of Asia, building national soil profile databases and soil property maps, and establishing web-based soil information systems. The project fostered regional and international collaboration, promoted soil data sharing, and contributed to the Global Soil Information System (GLOSIS) under the Global Soil Partnership.
 
-This dataset is also aligned with the Country Guidelines for the GSNmap initiative (FAO, 2022), which provide technical specifications for generating national maps of soil nutrients and associated properties at 250 m resolution. The guidelines describe standardized digital soil mapping procedures to ensure consistency and comparability across countries and regions, with outputs including soil nutrient levels as well as key soil properties such as organic carbon, pH, texture, bulk density, and cation exchange capacity. These products support evidence-based agricultural planning and policy development. To cite or share: https://doi.org/10.4060/cc1717en'
+This dataset is aligned with the Country Guidelines for the GSNmap initiative (FAO, 2022), which provide technical specifications for generating national maps of soil nutrients and associated properties at 250 m resolution. The guidelines describe standardized digital soil mapping procedures to ensure consistency and comparability across countries and regions, with outputs including soil nutrient levels as well as key soil properties such as organic carbon, pH, texture, bulk density, and cation exchange capacity. These products support evidence-based agricultural planning and policy development. To cite or share: https://doi.org/10.4060/cc1717en'
 WHERE country_id = 'PH'
   AND project_id = 'GSNM';
 
@@ -79,7 +79,7 @@ UPDATE spatial_metadata.mapset m SET keyword_theme = p.keyword_theme FROM spatia
 
 
 -- licence
-UPDATE spatial_metadata.mapset SET other_constraints = 'Creative Commons Attribution 4.0 International licence (CC-BY-4.0)' WHERE country_id = 'PH';
+UPDATE spatial_metadata.mapset SET other_constraints = 'CC-BY-4.0' WHERE country_id = 'PH';
 
 
 -- time period
