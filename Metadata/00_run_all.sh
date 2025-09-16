@@ -36,13 +36,11 @@ psql -h localhost -p 5432 -d iso19139 -U sis -f $PROJECT_DIR/GloSIS-private/Meta
 # python $PROJECT_DIR/GloSIS-private/Metadata/04_table2xml.py "$COUNTRY" "GSAS"
 python $PROJECT_DIR/GloSIS-private/Metadata/04_table2xml.py "$COUNTRY" "GSOCSEQ"
 python $PROJECT_DIR/GloSIS-private/Metadata/04_table2xml.py "$COUNTRY" "GSNM"
-python $PROJECT_DIR/GloSIS-private/Metadata/04_table2xml.py "$COUNTRY" "OTHER"
 
 # export metadata (xml) mapfiles (map) and symbology (sld)
 # python $PROJECT_DIR/GloSIS-private/Metadata/05_export.py "$COUNTRY" "GSAS" $DATA_DIR/output"
 python $PROJECT_DIR/GloSIS-private/Metadata/05_export.py "$COUNTRY" "GSOCSEQ" "$DATA_DIR/output"
 python $PROJECT_DIR/GloSIS-private/Metadata/05_export.py "$COUNTRY" "GSNM" "$DATA_DIR/output"
-python $PROJECT_DIR/GloSIS-private/Metadata/05_export.py "$COUNTRY" "OTHER" "$DATA_DIR/output"
 
 # create or update (if existis) symbology in GISMGR
 $PROJECT_DIR/GloSIS-private/Metadata/06_GISMGR_style.sh "$COUNTRY"

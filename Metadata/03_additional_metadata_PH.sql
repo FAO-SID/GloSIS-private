@@ -1,9 +1,7 @@
 -- project
-INSERT INTO spatial_metadata.project (country_id, project_id, project_name) VALUES 
-('PH', 'GSAS', 'Global Salt-Affected Soils'),
-('PH', 'GSNM', 'Global Soil Nutrients Map'),
-('PH', 'GSOCSEQ', 'Global Soil Organic Carbon Sequestration potential map')
-ON CONFLICT (country_id, project_id) DO NOTHING;
+UPDATE spatial_metadata.project SET project_name='Global Salt-Affected Soils' WHERE country_id='PH' AND project_id='GSAS';
+UPDATE spatial_metadata.project SET project_name='Global Soil Nutrients Map' WHERE country_id='PH' AND project_id='GSNM';
+UPDATE spatial_metadata.project SET project_name='Global Soil Organic Carbon Sequestration potential map' WHERE country_id='PH' AND project_id='GSOCSEQ';
 
 
 -- dates

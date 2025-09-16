@@ -1,17 +1,13 @@
 -- project
-INSERT INTO spatial_metadata.project (country_id, project_id, project_name) VALUES 
--- ('BT', 'GSAS', 'Global Salt-Affected Soils'),
-('BT', 'GSNM', 'Global Soil Nutrients Map'),
-('BT', 'GSOCSEQ', 'Global Soil Organic Carbon Sequestration potential map'),
-('BT', 'OTHER', 'Other maps')
-ON CONFLICT (country_id, project_id) DO NOTHING;
+-- UPDATE spatial_metadata.project SET project_name='Global Salt-Affected Soils' WHERE country_id='BT' AND project_id='GSAS';
+UPDATE spatial_metadata.project SET project_name='Global Soil Nutrients Map' WHERE country_id='BT' AND project_id='GSNM';
+UPDATE spatial_metadata.project SET project_name='Global Soil Organic Carbon Sequestration potential map' WHERE country_id='BT' AND project_id='GSOCSEQ';
 
 
 -- dates
-UPDATE spatial_metadata.mapset SET creation_date = '2021-12-17', publication_date = '2021-12-17', revision_date = '2021-12-17' WHERE country_id = 'BT' AND project_id = 'GSAS';
+--UPDATE spatial_metadata.mapset SET creation_date = '2021-12-17', publication_date = '2021-12-17', revision_date = '2021-12-17' WHERE country_id = 'BT' AND project_id = 'GSAS';
 UPDATE spatial_metadata.mapset SET creation_date = '2024-03-28', publication_date = '2024-03-28', revision_date = '2024-03-28' WHERE country_id = 'BT' AND project_id = 'GSNM';
 UPDATE spatial_metadata.mapset SET creation_date = '2022-11-11', publication_date = '2022-11-11', revision_date = '2022-11-11' WHERE country_id = 'BT' AND project_id = 'GSOCSEQ';
-UPDATE spatial_metadata.mapset SET creation_date = '2024-03-28', publication_date = '2024-03-28', revision_date = '2024-03-28' WHERE country_id = 'BT' AND project_id = 'OTHER';
 
 
 -- unit_of_measure_id
@@ -56,17 +52,12 @@ This dataset relates to the Global Soil Organic Carbon Sequestration Potential M
 WHERE country_id = 'BT'
   AND project_id = 'GSOCSEQ';
 
-UPDATE spatial_metadata.mapset
-SET abstract = 'This dataset was developed under the AFACI project - Development of the Soil Atlas of Asia and National Soil Information Systems (2019-2023). The project supported AFACI member countries in collecting, harmonizing, and managing national soil data to strengthen evidence-based decision making for sustainable soil management. Activities included rescuing legacy soil data, harmonizing national soil maps for the Soil Atlas of Asia, building national soil profile databases and soil property maps, and establishing web-based soil information systems. The project fostered regional and international collaboration, promoted soil data sharing, and contributed to the Global Soil Information System (GLOSIS) under the Global Soil Partnership.
+-- UPDATE spatial_metadata.mapset
+-- SET abstract = 'This dataset was developed under the AFACI project - Development of the Soil Atlas of Asia and National Soil Information Systems (2019-2023). The project supported AFACI member countries in collecting, harmonizing, and managing national soil data to strengthen evidence-based decision making for sustainable soil management. Activities included rescuing legacy soil data, harmonizing national soil maps for the Soil Atlas of Asia, building national soil profile databases and soil property maps, and establishing web-based soil information systems. The project fostered regional and international collaboration, promoted soil data sharing, and contributed to the Global Soil Information System (GLOSIS) under the Global Soil Partnership.
 
-This dataset is linked to the Global Soil Organic Carbon Sequestration Potential Map (GSOCseq), developed under the Global Soil Partnership (GSP) to support Sustainable Development Goal Indicator 15.3 on land degradation neutrality. Using a country-driven bottom-up approach, national SOC sequestration maps are produced and validated by local experts with standardized SOC models and the best available data. The GSOCseq products provide a scientific basis for assessing soil restoration potential and informing sustainable land management policies. To cite or share: https://doi.org/10.4060/cb2642en'
-WHERE country_id = 'BT'
-  AND project_id = 'GSAS';
-
-UPDATE spatial_metadata.mapset
-SET abstract = title
-WHERE country_id = 'BT'
-  AND project_id = 'OTHER';
+-- This dataset is linked to the Global Soil Organic Carbon Sequestration Potential Map (GSOCseq), developed under the Global Soil Partnership (GSP) to support Sustainable Development Goal Indicator 15.3 on land degradation neutrality. Using a country-driven bottom-up approach, national SOC sequestration maps are produced and validated by local experts with standardized SOC models and the best available data. The GSOCseq products provide a scientific basis for assessing soil restoration potential and informing sustainable land management policies. To cite or share: https://doi.org/10.4060/cb2642en'
+-- WHERE country_id = 'BT'
+--   AND project_id = 'GSAS';
 
 
 -- browse_graphic
@@ -105,10 +96,10 @@ UPDATE spatial_metadata.mapset
 WHERE country_id = 'BT'
   AND project_id = 'GSOCSEQ';
 
-UPDATE spatial_metadata.mapset
-    SET lineage_statement = 'https://doi.org/10.4060/ca9215en'
-WHERE country_id = 'BT'
-  AND project_id = 'GSAS';
+-- UPDATE spatial_metadata.mapset
+--     SET lineage_statement = 'https://doi.org/10.4060/ca9215en'
+-- WHERE country_id = 'BT'
+--   AND project_id = 'GSAS';
 
 
 -- insert organisation
@@ -177,14 +168,14 @@ INSERT INTO spatial_metadata.url (mapset_id, protocol, url, url_name)
 
 -- categorical class
 INSERT INTO spatial_metadata."class" (mapset_id, value, code, "label", color, opacity, publish) VALUES
-('BT-OTHER-CLAWRB-2024', -9999, '-9999', 'No Data', '#000000',1, 't'),
-('BT-OTHER-CLAWRB-2024', 1, '1', '1 - Anthraquic Cambisols', '#800080',1, 't'),
-('BT-OTHER-CLAWRB-2024', 2, '2', '2 - Dystric Cambisols', '#f84040',1, 't'),
-('BT-OTHER-CLAWRB-2024', 3, '3', '3 - Eutric Cambisols', '#da70d6',1, 't'),
-('BT-OTHER-CLAWRB-2024', 4, '4', '4 - Haplic Acrisols', '#f08080',1, 't'),
-('BT-OTHER-CLAWRB-2024', 5, '5', '5 - Haplic Alisols', '#00ffff',1, 't'),
-('BT-OTHER-CLAWRB-2024', 6, '6', '6 - Haplic Lixisols', '#f5deb3',1, 't'),
-('BT-OTHER-CLAWRB-2024', 7, '7', '7 - Skeletic Cambisols', '#ee82ee',1, 't')
+('BT-GSNM-CLAWRB-2024', -9999, '-9999', 'No Data', '#000000',1, 't'),
+('BT-GSNM-CLAWRB-2024', 1, '1', '1 - Anthraquic Cambisols', '#800080',1, 't'),
+('BT-GSNM-CLAWRB-2024', 2, '2', '2 - Dystric Cambisols', '#f84040',1, 't'),
+('BT-GSNM-CLAWRB-2024', 3, '3', '3 - Eutric Cambisols', '#da70d6',1, 't'),
+('BT-GSNM-CLAWRB-2024', 4, '4', '4 - Haplic Acrisols', '#f08080',1, 't'),
+('BT-GSNM-CLAWRB-2024', 5, '5', '5 - Haplic Alisols', '#00ffff',1, 't'),
+('BT-GSNM-CLAWRB-2024', 6, '6', '6 - Haplic Lixisols', '#f5deb3',1, 't'),
+('BT-GSNM-CLAWRB-2024', 7, '7', '7 - Skeletic Cambisols', '#ee82ee',1, 't')
  ON CONFLICT (mapset_id, value) DO NOTHING;
 
 
