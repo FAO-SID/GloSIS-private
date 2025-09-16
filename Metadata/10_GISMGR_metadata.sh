@@ -13,8 +13,7 @@ COUNTRY="${1}"
 
 
 create_metadata() {
-    # Read ID_TOKEN
-
+    
     # Loop soil properties
     SQL="SELECT DISTINCT
             m.mapset_id,
