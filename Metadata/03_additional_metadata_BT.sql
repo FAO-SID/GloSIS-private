@@ -179,15 +179,39 @@ INSERT INTO spatial_metadata."class" (mapset_id, value, code, "label", color, op
  ON CONFLICT (mapset_id, value) DO NOTHING;
 
 
--- SALT	-1.0	-1	No Data	#000000	0.0	true
--- SALT	4.0	4	4 - None	#ffffff	1.0	true
--- SALT	6.0	6	6 - Slight Salinity	#90ee90	1.0	true
--- SALT	2.0	2	2 - Moderate Salinity	#f5deb3	1.0	true
--- SALT	8.0	8	8 - Strong Salinity	#f08080	1.0	true
--- SALT	10.0	10	10 - Very Strong Salinity	#f84040	1.0	true
--- SALT	1.0	1	1 - Extreme Salinity	#ff0000	1.0	true
--- SALT	5.0	5	5 - Saline Sodic	#00ffff	1.0	true
--- SALT	7.0	7	7 - Slight Sodicity	#add8e6	1.0	true
--- SALT	3.0	3	3 - Moderate Sodicity	#ee82ee	1.0	true
--- SALT	9.0	9	9 - Strong Sodicity	#da70d6	1.0	true
--- SALT	11.0	11	11 - Very Strong Sodicity	#800080	1.0	true
+-- SALT	-1	-1	No Data	#000000	0	true
+-- SALT	1	1	1 - Extreme Salinity	#ff0000	1	true
+-- SALT	2	2	2 - Moderate Salinity	#f5deb3	1	true
+-- SALT	3	3	3 - Moderate Sodicity	#ee82ee	1	true
+-- SALT	4	4	4 - None	#ffffff	1	true
+-- SALT	5	5	5 - Saline Sodic	#00ffff	1	true
+-- SALT	6	6	6 - Slight Salinity	#90ee90	1	true
+-- SALT	7	7	7 - Slight Sodicity	#add8e6	1	true
+-- SALT	8	8	8 - Strong Salinity	#f08080	1	true
+-- SALT	9	9	9 - Strong Sodicity	#da70d6	1	true
+-- SALT	10	10	10 - Very Strong Salinity	#f84040	1	true
+-- SALT	11	11	11 - Very Strong Sodicity	#800080	1	true
+
+
+-- BT-GSOCSEQ-CORGADBAU-2022	-5097303552	-5097303552.00 - -4587573196.80	-5097303552.00 - -4587573196.80	#f4e7d3	1.0	true
+-- BT-GSOCSEQ-CORGADBAU-2022	-4587573248	-4587573196.80 - -4077842841.60	-4587573196.80 - -4077842841.60	#e4d5c2	1.0	true
+-- BT-GSOCSEQ-CORGADBAU-2022	-4077842944	-4077842841.60 - -3568112486.40	-4077842841.60 - -3568112486.40	#d3c2b0	1.0	true
+-- BT-GSOCSEQ-CORGADBAU-2022	-3568112384	-3568112486.40 - -3058382131.20	-3568112486.40 - -3058382131.20	#c2b09e	1.0	true
+-- BT-GSOCSEQ-CORGADBAU-2022	-3058382080	-3058382131.20 - -2548651776.00	-3058382131.20 - -2548651776.00	#b19d8c	1.0	true
+-- BT-GSOCSEQ-CORGADBAU-2022	-2548651776	-2548651776.00 - -2038921420.80	-2548651776.00 - -2038921420.80	#a08b7b	1.0	true
+-- BT-GSOCSEQ-CORGADBAU-2022	-2038921472	-2038921420.80 - -1529191065.60	-2038921420.80 - -1529191065.60	#8f7869	1.0	true
+-- BT-GSOCSEQ-CORGADBAU-2022	-1529191040	-1529191065.60 - -1019460710.40	-1529191065.60 - -1019460710.40	#7e6657	1.0	true
+-- BT-GSOCSEQ-CORGADBAU-2022	-1019460736	-1019460710.40 - -509730355.20	-1019460710.40 - -509730355.20	#6d5345	1.0	true
+-- BT-GSOCSEQ-CORGADBAU-2022	-509730368	-509730355.20 - 0.00	-509730355.20 - 0.00	#5c4033	1.0	true
+
+-- ('BT-GSOCSEQ-CORGADBAU-2022', -5097303552, '-5097303552 - -100', '-5097303552 - -100', '#f4e7d3',1, 't'),
+-- ('BT-GSOCSEQ-CORGADBAU-2022', -100, '-100 - 0', '-100 - 0', '#e4d5c2',1, 't'),
+-- ('BT-GSOCSEQ-CORGADBAU-2022', 0, '0 - 5', '0 - 5', '#d3c2b0',1, 't'),
+-- ('BT-GSOCSEQ-CORGADBAU-2022', 5, '5 - 10', '5 - 10', '#c2b09e',1, 't'),
+-- ('BT-GSOCSEQ-CORGADBAU-2022', 10, '10 - 15', '10 - 15', '#b19d8c',1, 't'),
+-- ('BT-GSOCSEQ-CORGADBAU-2022', 15, '15 - 20', '15 - 20', '#a08b7b',1, 't'),
+-- ('BT-GSOCSEQ-CORGADBAU-2022', 20, '20 - 30', '20 - 30', '#8f7869',1, 't'),
+-- ('BT-GSOCSEQ-CORGADBAU-2022', 30, '30 - 40', '30 - 40', '#7e6657',1, 't'),
+-- ('BT-GSOCSEQ-CORGADBAU-2022', 40, '40 - 50', '40 - 50', '#6d5345',1, 't'),
+-- ('BT-GSOCSEQ-CORGADBAU-2022', 50, '50 - 100', '50 - 100', '#5c4033',1, 't')
+

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # variables
-COUNTRY="BT"
+COUNTRY="VT"
 PROJECT_DIR="/home/carva014/Work/Code/FAO"
 DATA_DIR="/home/carva014/Downloads/FAO/AFACI/$COUNTRY"
 DATE=`date +%Y-%m-%d`
@@ -33,12 +33,12 @@ rm $DATA_DIR/output/*.tif.aux.xml
 psql -h localhost -p 5432 -d iso19139 -U sis -f $PROJECT_DIR/GloSIS-private/Metadata/03_additional_metadata_$COUNTRY.sql
 
 # produce the metadata
-# python $PROJECT_DIR/GloSIS-private/Metadata/04_table2xml.py "$COUNTRY" "GSAS"
+python $PROJECT_DIR/GloSIS-private/Metadata/04_table2xml.py "$COUNTRY" "GSAS"
 python $PROJECT_DIR/GloSIS-private/Metadata/04_table2xml.py "$COUNTRY" "GSOCSEQ"
 python $PROJECT_DIR/GloSIS-private/Metadata/04_table2xml.py "$COUNTRY" "GSNM"
 
 # export metadata (xml) mapfiles (map) and symbology (sld)
-# python $PROJECT_DIR/GloSIS-private/Metadata/05_export.py "$COUNTRY" "GSAS" $DATA_DIR/output"
+python $PROJECT_DIR/GloSIS-private/Metadata/05_export.py "$COUNTRY" "GSAS" "$DATA_DIR/output"
 python $PROJECT_DIR/GloSIS-private/Metadata/05_export.py "$COUNTRY" "GSOCSEQ" "$DATA_DIR/output"
 python $PROJECT_DIR/GloSIS-private/Metadata/05_export.py "$COUNTRY" "GSNM" "$DATA_DIR/output"
 
