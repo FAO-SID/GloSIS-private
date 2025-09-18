@@ -93,9 +93,9 @@ WHERE property_id = split_part(NEW.mapset_id,'-',3);
         -- Insert the class interval and color into the categories table
         INSERT INTO spatial_metadata.class (mapset_id, value, code, "label", color, opacity, publish)
         VALUES (rec_layer.mapset_id, 
-                COALESCE(current_min::numeric(20,2),0), 
-                COALESCE(current_min::numeric(20,2),0) || ' - ' || COALESCE(current_max::numeric(20,2),0), 
-                COALESCE(current_min::numeric(20,2),0) || ' - ' || COALESCE(current_max::numeric(20,2),0), 
+                COALESCE(current_min::numeric(30,2),0), 
+                COALESCE(current_min::numeric(30,2),0) || ' - ' || COALESCE(current_max::numeric(30,2),0), 
+                COALESCE(current_min::numeric(30,2),0) || ' - ' || COALESCE(current_max::numeric(30,2),0), 
                 color, 
                 1, 
                 't')
