@@ -72,7 +72,7 @@ WHERE m.mapset_id = l.mapset_id AND m.country_id = 'VN';
 
 
 -- keywords
-UPDATE spatial_metadata.mapset SET keyword_place = '{Viet Nam}'::text[] WHERE country_id = 'VN';
+UPDATE spatial_metadata.mapset SET keyword_place = '{Vietnam}'::text[] WHERE country_id = 'VN';
 UPDATE spatial_metadata.mapset m SET keyword_theme = p.keyword_theme FROM spatial_metadata.property p WHERE country_id = 'VN' AND m.property_id = p.property_id;
 
 
@@ -104,7 +104,7 @@ WHERE country_id = 'VN'
 
 -- insert organisation
 INSERT INTO spatial_metadata.organisation (organisation_id, url, email, country, city, postal_code, delivery_point) VALUES
-    ('Soils and Fertilizers Institute', 'https://sfri.org.vn/', 'sfri.org@gmail.com', 'Viet Nam', 'Ha Noi', '11910', 'Duc Thang 4')
+    ('Soils and Fertilizers Institute', 'https://sfri.org.vn/', 'sfri.org@gmail.com', 'Vietnam', 'Ha Noi', '11910', 'Duc Thang 4')
     ON CONFLICT (organisation_id) DO NOTHING;
 
 
@@ -167,7 +167,7 @@ INSERT INTO spatial_metadata.url (mapset_id, protocol, url, url_name)
       UNION
     SELECT mapset_id, 'OGC:WMTS', 'https://data.apps.fao.org/map/wmts/wmts?service=WMTS&amp;request=GetCapabilities&amp;version=1.0.0&amp;workspace=GLOSIS', 'WMTS (FAO)' FROM spatial_metadata.mapset WHERE country_id = 'VN'
       UNION
-    SELECT mapset_id, 'OGC:WMTS', 'http://localhost:8082/?map=/etc/mapserver/'||layer_id||'.map&amp;SERVICE=WMS&amp;REQUEST=GetCapabilities', 'WMTS (Viet Nam SIS)' FROM spatial_metadata.layer WHERE layer_id LIKE 'VN-%'
+    SELECT mapset_id, 'OGC:WMTS', 'http://localhost:8082/?map=/etc/mapserver/'||layer_id||'.map&amp;SERVICE=WMS&amp;REQUEST=GetCapabilities', 'WMTS (Vietnam SIS)' FROM spatial_metadata.layer WHERE layer_id LIKE 'VN-%'
     ON CONFLICT (mapset_id, protocol, url) DO NOTHING;
 
 
