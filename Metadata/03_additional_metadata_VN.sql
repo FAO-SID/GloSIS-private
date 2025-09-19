@@ -173,7 +173,7 @@ INSERT INTO spatial_metadata.url (mapset_id, protocol, url, url_name)
 
 -- categorical class
 INSERT INTO spatial_metadata."class" (mapset_id, value, code, "label", color, opacity, publish) VALUES
-('VN-GSAS-SALT-2021', -1, '-1', '-1 - No Data', '#000000', 0, 't'),
+('VN-GSAS-SALT-2021', -9999, '-9999', 'No Data', '#000000', 0, 't'),
 ('VN-GSAS-SALT-2021', 1, '1', '1 - Extreme Salinity', '#ff0000', 1, 't'),
 ('VN-GSAS-SALT-2021', 2, '2', '2 - Moderate Salinity', '#f5deb3', 1, 't'),
 ('VN-GSAS-SALT-2021', 3, '3', '3 - Moderate Sodicity', '#ee82ee', 1, 't'),
@@ -186,3 +186,29 @@ INSERT INTO spatial_metadata."class" (mapset_id, value, code, "label", color, op
 ('VN-GSAS-SALT-2021', 10, '10', '10 - Very Strong Salinity', '#f84040', 1, 't'),
 ('VN-GSAS-SALT-2021', 11, '11', '11 - Very Strong Sodicity', '#800080', 1, 't')
  ON CONFLICT (mapset_id, value) DO NOTHING;
+
+
+-- fix extreme legend values
+DO $$
+DECLARE
+    f record;
+BEGIN
+    FOR f IN
+        SELECT mapset_id FROM spatial_metadata.layer WHERE mapset_id ILIKE 'VN%' AND stats_minimum < -100
+    LOOP
+        -- Delete existing records
+        EXECUTE format('DELETE FROM spatial_metadata.class WHERE mapset_id = %L', f.mapset_id);
+        
+        -- Insert new classification records
+        EXECUTE format('INSERT INTO spatial_metadata.class (mapset_id, value, code, "label", color, opacity, publish) VALUES (%L, -339999995214436420000000000000000000000, %L, %L, %L, 1, %L)', f.mapset_id, 'lower -100', 'lower -100', '#ff0000', 't');
+        EXECUTE format('INSERT INTO spatial_metadata.class (mapset_id, value, code, "label", color, opacity, publish) VALUES (%L, -100, %L, %L, %L, 1, %L)', f.mapset_id, '-100 - 0', '-100 - 0', '#e4d5c2', 't');
+        EXECUTE format('INSERT INTO spatial_metadata.class (mapset_id, value, code, "label", color, opacity, publish) VALUES (%L, 0, %L, %L, %L, 1, %L)', f.mapset_id, '0 - 10', '0 - 10', '#d3c2b0', 't');
+        EXECUTE format('INSERT INTO spatial_metadata.class (mapset_id, value, code, "label", color, opacity, publish) VALUES (%L, 10, %L, %L, %L, 1, %L)', f.mapset_id, '10 - 25', '10 - 25', '#c2b09e', 't');
+        EXECUTE format('INSERT INTO spatial_metadata.class (mapset_id, value, code, "label", color, opacity, publish) VALUES (%L, 25, %L, %L, %L, 1, %L)', f.mapset_id, '25 - 50', '25 - 50', '#b19d8c', 't');
+        EXECUTE format('INSERT INTO spatial_metadata.class (mapset_id, value, code, "label", color, opacity, publish) VALUES (%L, 50, %L, %L, %L, 1, %L)', f.mapset_id, '50 - 100', '50 - 100', '#a08b7b', 't');
+        EXECUTE format('INSERT INTO spatial_metadata.class (mapset_id, value, code, "label", color, opacity, publish) VALUES (%L, 100, %L, %L, %L, 1, %L)', f.mapset_id, '100 - 150', '100 - 150', '#8f7869', 't');
+        EXECUTE format('INSERT INTO spatial_metadata.class (mapset_id, value, code, "label", color, opacity, publish) VALUES (%L, 150, %L, %L, %L, 1, %L)', f.mapset_id, '150 - 250', '150 - 250', '#7e6657', 't');
+        EXECUTE format('INSERT INTO spatial_metadata.class (mapset_id, value, code, "label", color, opacity, publish) VALUES (%L, 250, %L, %L, %L, 1, %L)', f.mapset_id, '250 - 500', '250 - 500', '#6d5345', 't');
+        EXECUTE format('INSERT INTO spatial_metadata.class (mapset_id, value, code, "label", color, opacity, publish) VALUES (%L, 500, %L, %L, %L, 1, %L)', f.mapset_id, 'bigger 500', 'bigger 500', '#800080', 't');
+    END LOOP;
+END $$;
