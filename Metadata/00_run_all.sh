@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # variables
-COUNTRY="VN"
+COUNTRY=BD
 PROJECT_DIR="/home/carva014/Work/Code/FAO"
 DATA_DIR="/home/carva014/Downloads/FAO/AFACI/$COUNTRY"
 DATE=`date +%Y-%m-%d`
