@@ -32,8 +32,8 @@ check_dependencies() {
         exit 1
     fi
     
-    if ! command -v jq &> /dev/null; then
-        print_status $RED "Error: jq is not installed. Please install jq for JSON processing."
+    if ! command -v python3 &> /dev/null; then
+        print_status $RED "Error: python3 is not installed. Please install python3 for local HTTP server."
         exit 1
     fi
     
@@ -62,7 +62,46 @@ validate_config() {
     print_status $GREEN "Configuration validation passed."
 }
 
-# Function to upload a single XML file
+# Function to create a temporary HTTP server for XML files (if needed)
+start_temp_server() {
+    local port=8000
+    local server_pid_file="/tmp/temp_xml_server.pid"
+    
+    print_status $YELLOW "Starting temporary HTTP server on port $port..."
+    
+    # Start a simple HTTP server in the XML directory
+    cd "$XML_FOLDER"
+    python3 -m http.server $port > /tmp/temp_server.log 2>&1 &
+    echo $! > "$server_pid_file"
+    
+    # Wait a moment for server to start
+    sleep 2
+    
+    # Test if server is running
+    if curl -s "http://localhost:$port" > /dev/null; then
+        print_status $GREEN "Temporary server started successfully"
+        echo "http://localhost:$port"
+    else
+        print_status $RED "Failed to start temporary server"
+        return 1
+    fi
+}
+
+# Function to stop temporary HTTP server
+stop_temp_server() {
+    local server_pid_file="/tmp/temp_xml_server.pid"
+    
+    if [ -f "$server_pid_file" ]; then
+        local pid=$(cat "$server_pid_file")
+        if kill "$pid" 2>/dev/null; then
+            print_status $YELLOW "Stopped temporary HTTP server"
+        fi
+        rm -f "$server_pid_file"
+        rm -f "/tmp/temp_server.log"
+    fi
+}
+
+# Function to upload a single XML file using the original method
 upload_xml_file() {
     local xml_file=$1
     local filename=$(basename "$xml_file")
@@ -70,29 +109,45 @@ upload_xml_file() {
     
     print_status $YELLOW "Processing: $filename"
     
-    # Read XML content and escape it for JSON
-    xml_content=$(cat "$xml_file" | jq -Rs .)
+    # Extract UUID from filename if it matches the pattern
+    local uuid=$(echo "$filename" | grep -o '[0-9a-f]\{8\}-[0-9a-f]\{4\}-[0-9a-f]\{4\}-[0-9a-f]\{4\}-[0-9a-f]\{12\}' | head -1)
     
-    # Create JSON payload
+    if [ -n "$uuid" ]; then
+        # Use the original URL-based method if we can extract UUID
+        upload_xml_via_original_method "$uuid" "$filename"
+    else
+        # Use local server method
+        upload_xml_via_local_server "$filename"
+    fi
+}
+
+# Function to upload using original FAO method (if UUID available)
+upload_xml_via_original_method() {
+    local uuid=$1
+    local filename=$2
+    local temp_json="/tmp/ckan_upload_data.json"
+    
+    print_status $YELLOW "Using original FAO URL method for UUID: $uuid"
+    
+    # Create JSON payload matching the original instructions exactly
     cat > "$temp_json" << EOF
 {
-    "xml_content": $xml_content,
+    "url": "https://data.apps.fao.org/map/catalog/srv/api/records/$uuid/formatters/xml?approved=true",
     "jsonschema_type": "iso19139",
     "package_update": "false",
     "from_xml": "true",
     "owner_org": "$OWNER_ORG",
     "license_id": "$LICENSE_ID",
-    "import": "import",
-    "filename": "$filename"
+    "import": "import"
 }
 EOF
     
-    # Make the API call
+    # Make the API call exactly as in original instructions
     response=$(curl -s -w "\n%{http_code}" \
         -X POST \
         -H "Content-Type: application/json" \
-        -H "Authorization: $API_KEY_CKAN" \
         -H "Accept: application/xml" \
+        -H "Authorization: $API_KEY_CKAN" \
         -d @"$temp_json" \
         "$CKAN_URL")
     
@@ -105,30 +160,34 @@ EOF
     
     # Check response
     if [ "$http_code" = "200" ]; then
-        print_status $GREEN "✓ Successfully uploaded: $filename"
-        echo "  Response: $response_body" | head -c 100
-        echo "..."
+        # Check if response contains success indicators
+        if echo "$response_body" | grep -q '"success": *true' || echo "$response_body" | grep -q '"result"'; then
+            print_status $GREEN "✓ Successfully uploaded: $filename"
+            echo "  Response: $response_body" | head -c 200
+            echo "..."
+            return 0
+        else
+            print_status $RED "✗ Upload may have failed: $filename"
+            echo "  Response: $response_body"
+            return 1
+        fi
     else
         print_status $RED "✗ Failed to upload: $filename (HTTP $http_code)"
         echo "  Response: $response_body"
+        return 1
     fi
-    
-    echo ""
 }
 
-# Function to upload XML files via URL (alternative method)
-upload_xml_via_url() {
-    local xml_file=$1
-    local filename=$(basename "$xml_file")
+# Function to upload using local server
+upload_xml_via_local_server() {
+    local filename=$1
+    local temp_json="/tmp/ckan_upload_data.json"
+    local xml_url="http://localhost:8000/$filename"
     
-    print_status $YELLOW "Processing via URL method: $filename"
+    print_status $YELLOW "Using local server method for: $filename"
     
-    # Note: This method assumes you have a way to serve your XML files via HTTP
-    # You would need to modify this section based on your setup
-    
-    local xml_url="http://your-server.com/xml/$filename"  # UPDATE THIS
-    
-    local json_data=$(cat << EOF
+    # Create JSON payload
+    cat > "$temp_json" << EOF
 {
     "url": "$xml_url",
     "jsonschema_type": "iso19139",
@@ -139,28 +198,44 @@ upload_xml_via_url() {
     "import": "import"
 }
 EOF
-)
     
+    # Make the API call
     response=$(curl -s -w "\n%{http_code}" \
         -X POST \
         -H "Content-Type: application/json" \
-        -H "Authorization: $API_KEY_CKAN" \
         -H "Accept: application/xml" \
-        -d "$json_data" \
+        -H "Authorization: $API_KEY_CKAN" \
+        -d @"$temp_json" \
         "$CKAN_URL")
     
+    # Extract HTTP status code and response body
     http_code=$(echo "$response" | tail -n1)
     response_body=$(echo "$response" | head -n -1)
     
+    # Clean up temp file
+    rm -f "$temp_json"
+    
+    # Check response
     if [ "$http_code" = "200" ]; then
-        print_status $GREEN "✓ Successfully uploaded: $filename"
+        # Check if response contains success indicators
+        if echo "$response_body" | grep -q '"success": *true' || echo "$response_body" | grep -q '"result"'; then
+            print_status $GREEN "✓ Successfully uploaded: $filename"
+            echo "  Response: $response_body" | head -c 200
+            echo "..."
+            return 0
+        else
+            print_status $RED "✗ Upload may have failed: $filename"
+            echo "  Response: $response_body"
+            return 1
+        fi
     else
         print_status $RED "✗ Failed to upload: $filename (HTTP $http_code)"
         echo "  Response: $response_body"
+        return 1
     fi
-    
-    echo ""
 }
+
+
 
 # Main execution
 main() {
@@ -199,12 +274,34 @@ main() {
     success_count=0
     failure_count=0
     
+    # Check if any files have UUIDs (can use original method)
+    uuid_files=0
+    for xml_file in "$XML_FOLDER"/*.xml; do
+        if [ -f "$xml_file" ]; then
+            filename=$(basename "$xml_file")
+            if echo "$filename" | grep -q '[0-9a-f]\{8\}-[0-9a-f]\{4\}-[0-9a-f]\{4\}-[0-9a-f]\{4\}-[0-9a-f]\{12\}'; then
+                ((uuid_files++))
+            fi
+        fi
+    done
+    
+    # Start local server if needed
+    local server_url=""
+    if [ $uuid_files -lt $xml_count ]; then
+        print_status $YELLOW "$((xml_count - uuid_files)) files don't have UUIDs, starting local HTTP server..."
+        server_url=$(start_temp_server)
+        if [ $? -ne 0 ]; then
+            print_status $RED "Failed to start local server. Cannot proceed with non-UUID files."
+            exit 1
+        fi
+    fi
+    
     # Process each XML file
     for xml_file in "$XML_FOLDER"/*.xml; do
         if [ -f "$xml_file" ]; then
             upload_xml_file "$xml_file"
             
-            # Check if upload was successful (simple check based on output)
+            # Check if upload was successful
             if [ $? -eq 0 ]; then
                 ((success_count++))
             else
@@ -212,9 +309,14 @@ main() {
             fi
             
             # Add a small delay to avoid overwhelming the server
-            sleep 1
+            sleep 2
         fi
     done
+    
+    # Stop local server if it was started
+    if [ -n "$server_url" ]; then
+        stop_temp_server
+    fi
     
     # Summary
     echo ""
@@ -274,3 +376,20 @@ done
 
 # Run main function
 main
+
+
+# API_KEY_CKAN=$(cat /home/carva014/Documents/Arquivo/Trabalho/FAO/API_KEY_CKAN.txt)
+
+# # Check your user details
+# curl -H "Authorization: $API_KEY_CKAN" "https://data.review.fao.org/ckanx/api/3/action/user_show"
+# # {"help": "https://data.review.fao.org/ckanx/api/3/action/help_show?name=user_show", "success": false, "                       error": {"message": "Not found", "__type": "Not Found Error"}}(base)
+
+# # Check organization membership
+# curl -H "Authorization: $API_KEY_CKAN" "https://data.review.fao.org/ckanx/api/3/action/member_list?id=GLOSIS&object_type=user"
+# # {"help": "https://data.review.fao.org/ckanx/api/3/action/help_show?name=organization_list_for_user", "success": true, "result": []}(base)
+
+# # List organizations you belong to
+# curl -H "Authorization: $API_KEY_CKAN" "https://data.review.fao.org/ckanx/api/3/action/organization_list_for_user"
+# # {"help": "https://data.review.fao.org/ckanx/api/3/action/help_show?name=organization_list_for_user", "success": true, "result": []}(base)
+
+
