@@ -138,10 +138,10 @@ def bake_xml(group_id, template, output):
         reference_system_identifier_code = '-1' if row[0] == None else str(row[0])
         distance = '0' if row[1] == None else str(row[1])
         distance_uom = 'UNKNOWN' if row[2] == None else str(row[2])
-        west_bound_longitude = '0' if row[6] == None else str(row[6]) #N
-        east_bound_longitude = '0' if row[5] == None else str(row[5]) #S
-        south_bound_latitude = '0' if row[4] == None else str(row[4]) #E
-        north_bound_latitude = '0' if row[3] == None else str(row[3]) #W
+        west_bound_longitude = '0' if row[3] == None else str(row[3]) #N
+        east_bound_longitude = '0' if row[4] == None else str(row[4]) #S
+        south_bound_latitude = '0' if row[5] == None else str(row[5]) #E
+        north_bound_latitude = '0' if row[6] == None else str(row[6]) #W
         distribution_format = 'UNKNOWN' if row[7] == None else str(row[7])
 
         # editon

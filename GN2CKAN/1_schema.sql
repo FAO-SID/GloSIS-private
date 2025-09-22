@@ -84,10 +84,10 @@ CREATE TABLE xml2db.layer (
   distance text,
   distance_uom text,
   extent text,
-  west_bound_longitude numeric(4,1),
-  east_bound_longitude numeric(4,1),
-  south_bound_latitude numeric(4,1),
-  north_bound_latitude numeric(4,1),
+  west_bound_longitude numeric(10,6),
+  east_bound_longitude numeric(10,6),
+  south_bound_latitude numeric(10,6),
+  north_bound_latitude numeric(10,6),
   distribution_format text,
   -- extra metadata
   compression text,
@@ -162,6 +162,26 @@ ALTER TABLE xml2db.url OWNER TO sis;
 GRANT SELECT ON TABLE xml2db.url TO sis_r;
 
 
+CREATE TABLE xml2db.soil_paper_maps (
+  uuid text,
+  year text,
+  country_code text,
+  country_name text,
+  keywords text,
+  title text,
+  abstract text,
+  w numeric(10,6),
+  e numeric(10,6),
+  s numeric(10,6),
+  n numeric(10,6),
+  download_url text,
+  metadata_url text,
+  geom geometry(point, 4326)
+);
+ALTER TABLE xml2db.soil_paper_maps OWNER TO sis;
+GRANT SELECT ON TABLE xml2db.soil_paper_maps TO sis_r;
+
+
 --------------------------
 --     PRIMARY KEY      --
 --------------------------
@@ -174,6 +194,7 @@ ALTER TABLE xml2db.mapset_x_org_x_ind ADD PRIMARY KEY (mapset_id, organisation_i
 ALTER TABLE xml2db.organisation ADD PRIMARY KEY (organisation_id);
 ALTER TABLE xml2db.individual ADD PRIMARY KEY (individual_id);
 ALTER TABLE xml2db.url ADD PRIMARY KEY (mapset_id, protocol, url);
+ALTER TABLE xml2db.soil_paper_maps ADD PRIMARY KEY (download_url);
 
 
 --------------------------
