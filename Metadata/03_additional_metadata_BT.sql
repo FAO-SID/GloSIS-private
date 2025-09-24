@@ -21,12 +21,31 @@ WHERE m.country_id = 'BT'
 
 -- title
 UPDATE spatial_metadata.mapset m SET title = t.title
-    FROM (SELECT DISTINCT m.mapset_id, p.name||' ('||coalesce(c.en,'')||' - '||coalesce(p.unit_of_measure_id,'')||' - '||coalesce(l.distance,'')||' '||coalesce(l.distance_uom,'')||' - '||coalesce(EXTRACT( YEAR FROM m.creation_date)::text,'')||')' AS title
+    FROM (SELECT DISTINCT m.mapset_id, 
+                          'GSASmap - '||p.name||' ('||coalesce(c.en,'')||' - '||coalesce(p.unit_of_measure_id,'')||' - '||coalesce(l.distance,'')||' '||coalesce(l.distance_uom,'')||' - '||coalesce(EXTRACT( YEAR FROM m.creation_date)::text,'')||')' AS title
             FROM spatial_metadata.mapset m
             LEFT JOIN spatial_metadata.property p ON p.property_id = m.property_id
             LEFT JOIN spatial_metadata.country c ON c.country_id = m.country_id
             LEFT JOIN spatial_metadata.layer l ON l.mapset_id = m.mapset_id) t
-    WHERE m.mapset_id = t.mapset_id AND m.country_id = 'BT';
+    WHERE m.mapset_id = t.mapset_id AND m.country_id = 'BT' AND project_id='GSAS';
+
+UPDATE spatial_metadata.mapset m SET title = t.title
+    FROM (SELECT DISTINCT m.mapset_id, 
+                          'GSNmap - '||p.name||' ('||coalesce(c.en,'')||' - '||coalesce(p.unit_of_measure_id,'')||' - '||coalesce(l.distance,'')||' '||coalesce(l.distance_uom,'')||' - '||coalesce(EXTRACT( YEAR FROM m.creation_date)::text,'')||')' AS title
+            FROM spatial_metadata.mapset m
+            LEFT JOIN spatial_metadata.property p ON p.property_id = m.property_id
+            LEFT JOIN spatial_metadata.country c ON c.country_id = m.country_id
+            LEFT JOIN spatial_metadata.layer l ON l.mapset_id = m.mapset_id) t
+    WHERE m.mapset_id = t.mapset_id AND m.country_id = 'BT' AND project_id='GSNM';
+
+UPDATE spatial_metadata.mapset m SET title = t.title
+    FROM (SELECT DISTINCT m.mapset_id, 
+                          p.name||' ('||coalesce(c.en,'')||' - '||coalesce(p.unit_of_measure_id,'')||' - '||coalesce(l.distance,'')||' '||coalesce(l.distance_uom,'')||' - '||coalesce(EXTRACT( YEAR FROM m.creation_date)::text,'')||')' AS title
+            FROM spatial_metadata.mapset m
+            LEFT JOIN spatial_metadata.property p ON p.property_id = m.property_id
+            LEFT JOIN spatial_metadata.country c ON c.country_id = m.country_id
+            LEFT JOIN spatial_metadata.layer l ON l.mapset_id = m.mapset_id) t
+    WHERE m.mapset_id = t.mapset_id AND m.country_id = 'BT' AND project_id='GSOCSEQ';
 
 
 -- citation

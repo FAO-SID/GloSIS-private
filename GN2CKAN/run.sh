@@ -81,7 +81,7 @@ psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.soil_paper_maps S
 psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.soil_paper_maps m SET country_code = c.country_id FROM spatial_metadata.country c WHERE m.country_name = c.en"
 psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.soil_paper_maps m SET geom = (SELECT ST_GeometryN(ST_GeneratePoints(c.geom, 1), 1) FROM country_geom c WHERE c.country_id = m.country_code ORDER BY ST_Area(c.geom) DESC LIMIT 1)"
 
-# export to geopackage
+# export to geopackage and csv
 ogr2ogr -progress \
         -overwrite \
         -skipfailures \
@@ -95,6 +95,28 @@ ogr2ogr -progress \
         -f GPKG /home/carva014/Work/Code/FAO/GloSIS-private/GN2CKAN/soil_paper_maps.gpkg \
         'PG:host=localhost port=5432 dbname=iso19139 user=sis' \
         xml2db.soil_paper_maps
+
+psql -h localhost -p 5432 -U sis -d iso19139 -c "\copy (
+        SELECT  uuid,
+                year,
+                country_code,
+                country_name,
+                keywords,
+                title,
+                abstract,
+                w,
+                e,
+                s,
+                n,
+                download_url,
+                metadata_url,
+                ST_Y(geom) AS latitude,
+                ST_X(geom) AS longitude
+        FROM xml2db.soil_paper_maps
+        ORDER BY country_code, title
+        ) 
+TO '/home/carva014/Work/Code/FAO/GloSIS-private/GN2CKAN/soil_paper_maps.csv' WITH CSV HEADER"
+
 
 # db to xml
 # python $PROJECT_DIR/3_db2xml.py
