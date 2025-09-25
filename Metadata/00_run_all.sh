@@ -27,7 +27,7 @@ cp $DATA_DIR/*.map $DATA_DIR/output
 eval "$(conda shell.bash hook)"
 conda activate db
 psql -h localhost -p 5432 -d iso19139 -U sis -c "DELETE FROM spatial_metadata.project WHERE country_id = '$COUNTRY'"
-psql -h localhost -p 5432 -d iso19139 -U sis -f $PROJECT_DIR/GloSIS-private/Metadata/01_add_property.sql
+# psql -h localhost -p 5432 -d iso19139 -U sis -f $PROJECT_DIR/GloSIS-private/Metadata/01_add_property.sql
 python $PROJECT_DIR/GloSIS-private/Metadata/02_geotiff_metadata_to_postgres.py $DATA_DIR/output/
 rm $DATA_DIR/output/*.tif.aux.xml
 psql -h localhost -p 5432 -d iso19139 -U sis -f $PROJECT_DIR/GloSIS-private/Metadata/03_additional_metadata_$COUNTRY.sql
