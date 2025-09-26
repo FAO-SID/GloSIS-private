@@ -5,7 +5,7 @@ UPDATE spatial_metadata.project SET project_name='Global Soil Nutrients Map' WHE
 
 
 -- dates
-UPDATE spatial_metadata.mapset SET creation_date = '2020-12-16', publication_date = '2020-12-16', revision_date = '2020-12-16' WHERE country_id = 'TH' AND project_id = 'GSAS';
+-- UPDATE spatial_metadata.mapset SET creation_date = '2020-12-16', publication_date = '2020-12-16', revision_date = '2020-12-16' WHERE country_id = 'TH' AND project_id = 'GSAS';
 UPDATE spatial_metadata.mapset SET creation_date = '2025-09-01', publication_date = '2025-09-01', revision_date = '2025-09-01' WHERE country_id = 'TH' AND project_id = 'GSNM';
 --UPDATE spatial_metadata.mapset SET creation_date = 'XXXXXXX', publication_date = 'XXXXXXX', revision_date = 'XXXXXXX' WHERE country_id = 'TH' AND project_id = 'GSOCSEQ';
 
@@ -100,8 +100,8 @@ UPDATE spatial_metadata.mapset SET other_constraints = 'CC BY-NC-ND 4.0' WHERE c
 
 
 -- time period
-UPDATE spatial_metadata.mapset SET time_period_begin = '1987-01-01' WHERE country_id = 'TH';
-UPDATE spatial_metadata.mapset SET time_period_end = '1924-09-01' WHERE country_id = 'TH';
+UPDATE spatial_metadata.mapset SET time_period_begin = '2000-01-01' WHERE country_id = 'TH';
+UPDATE spatial_metadata.mapset SET time_period_end = '2024-09-01' WHERE country_id = 'TH';
 
 
 -- lineage
@@ -191,20 +191,20 @@ INSERT INTO spatial_metadata.url (mapset_id, protocol, url, url_name)
 
 
 -- categorical class
-INSERT INTO spatial_metadata."class" (mapset_id, value, code, "label", color, opacity, publish) VALUES
-('TH-GSAS-SALT-2020', -9999, '-9999', 'No Data', '#000000', 0, 't'),
-('TH-GSAS-SALT-2020', 1, '1', '1 - Extreme Salinity', '#ff0000', 1, 't'),
-('TH-GSAS-SALT-2020', 2, '2', '2 - Moderate Salinity', '#f5deb3', 1, 't'),
-('TH-GSAS-SALT-2020', 3, '3', '3 - Moderate Sodicity', '#ee82ee', 1, 't'),
-('TH-GSAS-SALT-2020', 4, '4', '4 - None', '#ffffff', 1, 't'),
-('TH-GSAS-SALT-2020', 5, '5', '5 - Saline Sodic', '#00ffff', 1, 't'),
-('TH-GSAS-SALT-2020', 6, '6', '6 - Slight Salinity', '#90ee90', 1, 't'),
-('TH-GSAS-SALT-2020', 7, '7', '7 - Slight Sodicity', '#add8e6', 1, 't'),
-('TH-GSAS-SALT-2020', 8, '8', '8 - Strong Salinity', '#f08080', 1, 't'),
-('TH-GSAS-SALT-2020', 9, '9', '9 - Strong Sodicity', '#da70d6', 1, 't'),
-('TH-GSAS-SALT-2020', 10, '10', '10 - Very Strong Salinity', '#f84040', 1, 't'),
-('TH-GSAS-SALT-2020', 11, '11', '11 - Very Strong Sodicity', '#800080', 1, 't')
- ON CONFLICT (mapset_id, value) DO NOTHING;
+-- INSERT INTO spatial_metadata."class" (mapset_id, value, code, "label", color, opacity, publish) VALUES
+-- ('TH-GSAS-SALT-2020', -9999, '-9999', 'No Data', '#000000', 0, 't'),
+-- ('TH-GSAS-SALT-2020', 1, '1', '1 - Extreme Salinity', '#ff0000', 1, 't'),
+-- ('TH-GSAS-SALT-2020', 2, '2', '2 - Moderate Salinity', '#f5deb3', 1, 't'),
+-- ('TH-GSAS-SALT-2020', 3, '3', '3 - Moderate Sodicity', '#ee82ee', 1, 't'),
+-- ('TH-GSAS-SALT-2020', 4, '4', '4 - None', '#ffffff', 1, 't'),
+-- ('TH-GSAS-SALT-2020', 5, '5', '5 - Saline Sodic', '#00ffff', 1, 't'),
+-- ('TH-GSAS-SALT-2020', 6, '6', '6 - Slight Salinity', '#90ee90', 1, 't'),
+-- ('TH-GSAS-SALT-2020', 7, '7', '7 - Slight Sodicity', '#add8e6', 1, 't'),
+-- ('TH-GSAS-SALT-2020', 8, '8', '8 - Strong Salinity', '#f08080', 1, 't'),
+-- ('TH-GSAS-SALT-2020', 9, '9', '9 - Strong Sodicity', '#da70d6', 1, 't'),
+-- ('TH-GSAS-SALT-2020', 10, '10', '10 - Very Strong Salinity', '#f84040', 1, 't'),
+-- ('TH-GSAS-SALT-2020', 11, '11', '11 - Very Strong Sodicity', '#800080', 1, 't')
+--  ON CONFLICT (mapset_id, value) DO NOTHING;
 
 
 -- fix extreme legend values

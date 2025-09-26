@@ -1,7 +1,20 @@
 #!/bin/bash
 
 # variables
-COUNTRY=BD
+COUNTRY=TH
+
+
+# DETAIL:  Key (property_id)=(BDX) is not present in table "property". -> BKD kg/dm³
+# DETAIL:  Key (property_id)=(APX) is not present in table "property". -> Available P mg/kg
+# DETAIL:  Key (property_id)=(AKX) is not present in table "property". -> Available K mg/kg
+
+
+GSNM UNCT/STDV 2024/2025
+Review metadata address, dates, units
+
+
+
+
 PROJECT_DIR="/home/carva014/Work/Code/FAO"
 DATA_DIR="/home/carva014/Downloads/FAO/AFACI/$COUNTRY"
 DATE=`date +%Y-%m-%d`
