@@ -3,18 +3,6 @@
 # variables
 COUNTRY=TH
 
-
-# DETAIL:  Key (property_id)=(BDX) is not present in table "property". -> BKD kg/dm³
-# DETAIL:  Key (property_id)=(APX) is not present in table "property". -> Available P mg/kg
-# DETAIL:  Key (property_id)=(AKX) is not present in table "property". -> Available K mg/kg
-
-
-GSNM UNCT/STDV 2024/2025
-Review metadata address, dates, units
-
-
-
-
 PROJECT_DIR="/home/carva014/Work/Code/FAO"
 DATA_DIR="/home/carva014/Downloads/FAO/AFACI/$COUNTRY"
 DATE=`date +%Y-%m-%d`
@@ -29,7 +17,7 @@ rm -Rf $DATA_DIR/output
 $PROJECT_DIR/GloSIS/glosis-datacube/$COUNTRY/scripts/data_cube_1_rename.sh
 # $PROJECT_DIR/GloSIS/glosis-datacube/$COUNTRY/scripts/data_cube_2_check.sh
 $PROJECT_DIR/GloSIS/glosis-datacube/$COUNTRY/scripts/data_cube_3_nodata.sh
-$PROJECT_DIR/GloSIS/glosis-datacube/$COUNTRY/scripts/data_cube_2_check.sh
+# $PROJECT_DIR/GloSIS/glosis-datacube/$COUNTRY/scripts/data_cube_2_check.sh
 $PROJECT_DIR/GloSIS/glosis-datacube/$COUNTRY/scripts/data_cube_4_epsg.sh
 $PROJECT_DIR/GloSIS/glosis-datacube/$COUNTRY/scripts/data_cube_5_cog.sh
 rm -Rf $DATA_DIR/tmp

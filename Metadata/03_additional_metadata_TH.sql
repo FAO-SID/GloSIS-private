@@ -18,6 +18,12 @@ WHERE m.country_id = 'TH'
   AND m.unit_of_measure_id IS NULL
   AND m.property_id = p.property_id;
 
+-- UPDATE spatial_metadata.mapset SET unit_of_measure_id = 'TH-GSNM-BKD-2025' WHERE mapset_id = 'kg/dm³';
+-- UPDATE spatial_metadata.mapset SET unit_of_measure_id = 'TH-GSNM-CEC-2025' WHERE mapset_id = 'cmol/kg';
+-- UPDATE spatial_metadata.mapset SET unit_of_measure_id = 'TH-GSNM-KEXT-2025' WHERE mapset_id = 'mg/kg';
+-- UPDATE spatial_metadata.mapset SET unit_of_measure_id = 'TH-GSNM-PHX-2025' WHERE mapset_id = 'pH';
+-- UPDATE spatial_metadata.mapset SET unit_of_measure_id = 'TH-GSNM-PXX-2025' WHERE mapset_id = 'mg/kg';
+
 
 -- title
 UPDATE spatial_metadata.mapset m SET title = t.title
@@ -132,7 +138,12 @@ INSERT INTO spatial_metadata.individual (individual_id, email) VALUES
     ('Satira Udomsri', 'domsrisat@gmail.com'),
     ('Pichamon Intamo', 'pichamonip@gmail.com'),
     ('Worawan Laopansakul', 'oss_4@ldd.go.th'),
-    ('Naruekamon Janjirawuttikul', 'naruekamon@ldd.go.th')
+    ('Naruekamon Janjirawuttikul', 'naruekamon@ldd.go.th'),
+    ('Kridsopon Duangkamol', 'kridldd1@gmail.com'),
+    ('Kunnika Homyamyen', 'kunnihyy@gmail.com'),
+    ('Thawin Norkham', 'thawinnorkham@gmail.com'),
+    ('Phanlob Hongcharoenthai', 'oss_5@ldd.go.th'),
+    ('Wattana Pattanathaworn', 'wattanaatmcc@hotmail.com')
     ON CONFLICT (individual_id) DO NOTHING;
 
 
@@ -147,6 +158,16 @@ INSERT INTO spatial_metadata.proj_x_org_x_ind (country_id, project_id, tag, "rol
     SELECT DISTINCT country_id, project_id, 'pointOfContact', 'author', 'Soil surveyor', 'Land Development Department', 'Worawan Laopansakul' FROM spatial_metadata.project WHERE country_id = 'TH'
             UNION
     SELECT DISTINCT country_id, project_id, 'pointOfContact', 'author', 'Soil surveyor', 'Land Development Department', 'Naruekamon Janjirawuttikul' FROM spatial_metadata.project WHERE country_id = 'TH'
+            UNION
+    SELECT DISTINCT country_id, project_id, 'pointOfContact', 'author', 'Soil surveyor', 'Land Development Department', 'Kridsopon Duangkamol' FROM spatial_metadata.project WHERE country_id = 'TH'
+            UNION
+    SELECT DISTINCT country_id, project_id, 'pointOfContact', 'author', 'Soil surveyor', 'Land Development Department', 'Kunnika Homyamyen' FROM spatial_metadata.project WHERE country_id = 'TH'
+            UNION
+    SELECT DISTINCT country_id, project_id, 'pointOfContact', 'author', 'Soil surveyor', 'Land Development Department', 'Thawin Norkham' FROM spatial_metadata.project WHERE country_id = 'TH'
+            UNION
+    SELECT DISTINCT country_id, project_id, 'pointOfContact', 'author', 'Soil surveyor', 'Land Development Department', 'Phanlob Hongcharoenthai' FROM spatial_metadata.project WHERE country_id = 'TH'
+            UNION
+    SELECT DISTINCT country_id, project_id, 'pointOfContact', 'author', 'Soil surveyor', 'Land Development Department', 'Wattana Pattanathaworn' FROM spatial_metadata.project WHERE country_id = 'TH'
     ON CONFLICT (country_id, project_id, tag, role, "position", organisation_id, individual_id) DO NOTHING;
 
 
