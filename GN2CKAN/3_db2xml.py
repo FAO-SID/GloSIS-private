@@ -475,7 +475,7 @@ def bake_xml(group_id, template, output):
                 <gco:CharacterString>{url_name}</gco:CharacterString>
               </gmd:name>
               <gmd:description>
-                <gco:CharacterString>Download the map</gco:CharacterString>
+                <gco:CharacterString>Download map</gco:CharacterString>
               </gmd:description>
               <gmd:function>
                 <gmd:CI_OnLineFunctionCode codeList="http://standards.iso.org/ittf/PubliclyAvailableStandards/ISO_19139_Schemas/resources/codelist/ML_gmxCodelists.xml#CI_OnLineFunctionCode" codeListValue="{function}" />
