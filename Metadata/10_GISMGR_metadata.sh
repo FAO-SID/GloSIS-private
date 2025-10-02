@@ -41,6 +41,20 @@ create_metadata() {
         echo "{" >> "$FILE_JSON"
         echo "\"workspace_id\": \"${WORKSPACE}\"," >> "$FILE_JSON"
         echo "\"map_id\": \"${MAP_CODE}\"," >> "$FILE_JSON"
+
+        # Check if metadata exists
+        RESPONSE=$(curl -s "https://data.apps.fao.org/catalog/api/action/jsonschema_search_packages?q=jsonschema_opt:*${WORKSPACE}/mapsets/${MAP_CODE}*")
+        if jq -e '.result.response.docs[0]' <<< "$RESPONSE" >/dev/null; then
+            UUID=$(jq -r '.result.response.docs[0].data_dict.id' <<< "$RESPONSE")
+            HTTP_METHOD="PUT"
+            echo "Exists. Updating metadata: $UUID"
+            echo "\"package_id\":\"${UUID}\"," >> "$FILE_JSON"
+        else
+            echo "Does not exist. Creating..."
+            HTTP_METHOD="POST"
+            continue
+        fi
+        
         echo "\"owner_org\": \"glosis\"," >> "$FILE_JSON"
         echo "\"license_code\": \"${OTHER_CONSTRAINTS}\"," >> "$FILE_JSON"
         echo "\"map_type\":\"${CASE}\"," >> "$FILE_JSON"
@@ -117,10 +131,8 @@ create_metadata() {
         echo "  ]" >> "$FILE_JSON"
         echo "}" >> "$FILE_JSON"
 
-
-
         # Upload metadata (does not update if exists!)
-        curl -X POST \
+        curl -X $HTTP_METHOD \
             -H "Content-Type: application/json" \
             -d @$FILE_JSON \
             "https://data.review.fao.org/geospatial/etl/ckan/gismgr"

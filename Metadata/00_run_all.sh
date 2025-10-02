@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # variables
-COUNTRY=TH
+COUNTRY=LA
 
 PROJECT_DIR="/home/carva014/Work/Code/FAO"
 DATA_DIR="/home/carva014/Downloads/FAO/AFACI/$COUNTRY"
@@ -17,7 +17,6 @@ rm -Rf $DATA_DIR/output
 $PROJECT_DIR/GloSIS/glosis-datacube/$COUNTRY/scripts/data_cube_1_rename.sh
 # $PROJECT_DIR/GloSIS/glosis-datacube/$COUNTRY/scripts/data_cube_2_check.sh
 $PROJECT_DIR/GloSIS/glosis-datacube/$COUNTRY/scripts/data_cube_3_nodata.sh
-# $PROJECT_DIR/GloSIS/glosis-datacube/$COUNTRY/scripts/data_cube_2_check.sh
 $PROJECT_DIR/GloSIS/glosis-datacube/$COUNTRY/scripts/data_cube_4_epsg.sh
 $PROJECT_DIR/GloSIS/glosis-datacube/$COUNTRY/scripts/data_cube_5_cog.sh
 rm -Rf $DATA_DIR/tmp

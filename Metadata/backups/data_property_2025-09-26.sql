@@ -125,7 +125,7 @@ INSERT INTO spatial_metadata.property (property_id, name, unit_of_measure_id, mi
 INSERT INTO spatial_metadata.property (property_id, name, unit_of_measure_id, min, max, property_phys_chem_id, property_type, num_intervals, start_color, end_color, keyword_theme) VALUES ('ZNTOT', 'Zinc (Zn) - total', '%', NULL, NULL, NULL, 'quantitative', 10, '#F4E7D3', '#5C4033', '{soil,"digital soil mapping",zinc,nutrient}');
 
 
--- Completed on 2025-09-26 20:06:53 CEST
+-- Completed on 2025-09-26 20:06:52 CEST
 
 --
 -- PostgreSQL database dump complete

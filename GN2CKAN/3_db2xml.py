@@ -105,7 +105,7 @@ def bake_xml(group_id, template, output):
         abstract = 'UNKNOWN' if row[13] == None else str(row[13])
         status = 'UNKNOWN' if row[14] == None else str(row[14])
         update_frequency = 'UNKNOWN' if row[15] == None else str(row[15])
-        md_browse_graphic = 'https://www.freeworldmaps.net/asia/philippines/philippines-physical-map.jpg' if row[16] == None else str(row[16])
+        md_browse_graphic = 'https://pngimg.com/uploads/world_map/world_map_PNG32.png' if row[16] == None else str(row[16])
         keyword_theme = 'UNKNOWN' if row[17] == None else str(row[17])
         keyword_place = 'UNKNOWN' if row[18] == None else str(row[18])
         keyword_discipline = 'UNKNOWN' if row[19] == None else str(row[19])
@@ -118,7 +118,7 @@ def bake_xml(group_id, template, output):
         time_period_begin = '1900-01-01' if row[26] == None else str(row[26])
         time_period_end = '1900-01-01' if row[27] == None else str(row[27])
         scope_code = 'UNKNOWN' if row[28] == None else str(row[28])
-        lineage_statement = 'UNKNOWN' if row[29] == None else str(row[29])
+        lineage_statement = 'Data quality information not available' if row[29] == None else str(row[29])
 
         # read metadata from table xml2db.layer
         sql = f'''SELECT DISTINCT
@@ -137,7 +137,7 @@ def bake_xml(group_id, template, output):
 
         reference_system_identifier_code = '-1' if row[0] == None else str(row[0])
         distance = '0' if row[1] == None else str(row[1])
-        distance_uom = 'UNKNOWN' if row[2] == None else str(row[2])
+        distance_uom = 'm' if row[2] == None else str(row[2])
         west_bound_longitude = '0' if row[3] == None else str(row[3]) #N
         east_bound_longitude = '0' if row[4] == None else str(row[4]) #S
         south_bound_latitude = '0' if row[5] == None else str(row[5]) #E
@@ -447,7 +447,7 @@ def bake_xml(group_id, template, output):
         sql = f'''SELECT url, protocol, url_name
                  FROM xml2db.url
                  WHERE mapset_id='{mapset_id}'
-                   AND protocol IN ('OGC:WMS','OGC:WMTS','WWW:LINK-1.0-http--link', 'WWW:LINK-1.0-http--related')
+                   AND protocol IN ('OGC:WMS','OGC:WMTS','WWW:DOWNLOAD-1.0-http--download')
                  ORDER BY protocol, url'''
         cur.execute(sql)
         rows = cur.fetchall()
@@ -457,7 +457,7 @@ def bake_xml(group_id, template, output):
             url_name   = row[2]
             if protocol in ('OGC:WMS','OGC:WMTS'):
                 function = 'information'
-            elif protocol in ('WWW:LINK-1.0-http--link', 'WWW:LINK-1.0-http--related'):
+            elif protocol in ('WWW:DOWNLOAD-1.0-http--download'):
                 function = 'download'
             else:
                 function = 'UNKNOWN'
@@ -474,8 +474,8 @@ def bake_xml(group_id, template, output):
               <gmd:name>
                 <gco:CharacterString>{url_name}</gco:CharacterString>
               </gmd:name>
-              <gmd:description gco:nilReason="missing">
-                <gco:CharacterString />
+              <gmd:description>
+                <gco:CharacterString>Download the map</gco:CharacterString>
               </gmd:description>
               <gmd:function>
                 <gmd:CI_OnLineFunctionCode codeList="http://standards.iso.org/ittf/PubliclyAvailableStandards/ISO_19139_Schemas/resources/codelist/ML_gmxCodelists.xml#CI_OnLineFunctionCode" codeListValue="{function}" />

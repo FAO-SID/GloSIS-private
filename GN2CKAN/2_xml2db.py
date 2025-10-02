@@ -236,11 +236,17 @@ def extract_data(directory):
             cur.execute(sql)
 
         # md_browse_graphic
-        for elem in root.findall('.//gmd:identificationInfo/gmd:MD_DataIdentification/gmd:graphicOverview/gmd:MD_BrowseGraphic/gmd:fileName/gco:CharacterString', ns):
-          md_browse_graphic = elem.text
-          if md_browse_graphic is not None:
-            sql = f"UPDATE xml2db.mapset SET md_browse_graphic = '{md_browse_graphic}' WHERE file_identifier = '{file_identifier}'"
-            cur.execute(sql)
+        for elem in root.findall('.//gmd:graphicOverview/gmd:MD_BrowseGraphic', ns):
+          url = elem.find('.//gmd:fileName/gco:CharacterString', ns).text if elem.find('.//gmd:fileName/gco:CharacterString', ns) is not None else 'ERROR: no URL!'
+          protocol = 'WWW:LINK-1.0-http--link'
+          if elem.find('.//gmd:fileDescription/gco:CharacterString', ns) is not None:
+            url_name = elem.find('.//gmd:fileDescription/gco:CharacterString', ns).text
+          elif elem.find('.//gmd:fileDescription/gmd:CharacterString', ns) is not None: # ERROR in metadata! it should be gco:CharacterString
+            url_name = elem.find('.//gmd:fileDescription/gmd:CharacterString', ns).text # ERROR in metadata! it should be gco:CharacterString
+          else:
+            url_name = 'ERROR: no name!'
+          sql = f"INSERT INTO xml2db.url (mapset_id, url, protocol, url_name) VALUES ('{file_identifier}', '{url}', '{protocol}', '#thumbnail# - {url_name}') ON CONFLICT (mapset_id, url, protocol) DO NOTHING;"
+          cur.execute(sql)
 
         # keywords
         keyword_theme = []
@@ -248,38 +254,37 @@ def extract_data(directory):
         keyword_place = []
         for elem in root.findall('.//gmd:identificationInfo/gmd:MD_DataIdentification/gmd:descriptiveKeywords/gmd:MD_Keywords', ns):
           try:
-            keyword = elem.find('.//gmd:keyword/gco:CharacterString', ns).text
-          except:
-            continue
-          try:
             Keyword_type = elem.find('.//gmd:type/gmd:MD_KeywordTypeCode', ns).attrib['codeListValue']
           except:
             Keyword_type = 'theme'
-          if keyword is not None:
-            keyword = keyword.replace("'","")
-            keyword = keyword.replace(",","")
-            if Keyword_type == 'theme':
-              keyword_theme.append(keyword)
-            if Keyword_type == 'stratum':
-              keyword_stratum.append(keyword)
-            if Keyword_type == 'place':
-              keyword_place.append(keyword)
+          
+          for keyword_elem in elem.findall('.//gmd:keyword/gco:CharacterString', ns):
+            keyword = keyword_elem.text
+            if keyword is not None:
+                keyword = keyword.replace("'", "")
+                keyword = keyword.replace(",", "")
+                if Keyword_type == 'theme':
+                    keyword_theme.append(keyword)
+                elif Keyword_type == 'stratum':
+                    keyword_stratum.append(keyword)
+                elif Keyword_type == 'place':
+                    keyword_place.append(keyword)
 
-          if len(keyword_theme) > 0:
-            keywords_string = ', '.join(map(str, keyword_theme))
-            keywords_string = '{'+keywords_string+'}'
-            sql = f"UPDATE xml2db.mapset SET keyword_theme = '{keywords_string}' WHERE file_identifier = '{file_identifier}'"
-            cur.execute(sql)
-          if len(keyword_stratum) > 0:
-            keywords_string = ', '.join(map(str, keyword_stratum))
-            keywords_string = '{'+keywords_string+'}'
-            sql = f"UPDATE xml2db.mapset SET keyword_stratum = '{keywords_string}' WHERE file_identifier = '{file_identifier}'"
-            cur.execute(sql)
-          if len(keyword_place) > 0:
-            keywords_string = ', '.join(map(str, keyword_place))
-            keywords_string = '{'+keywords_string+'}'
-            sql = f"UPDATE xml2db.mapset SET keyword_place = '{keywords_string}' WHERE file_identifier = '{file_identifier}'"
-            cur.execute(sql)
+        if len(keyword_theme) > 0:
+          keywords_string = ', '.join(map(str, keyword_theme))
+          keywords_string = '{'+keywords_string+'}'
+          sql = f"UPDATE xml2db.mapset SET keyword_theme = '{keywords_string}' WHERE file_identifier = '{file_identifier}'"
+          cur.execute(sql)
+        if len(keyword_stratum) > 0:
+          keywords_string = ', '.join(map(str, keyword_stratum))
+          keywords_string = '{'+keywords_string+'}'
+          sql = f"UPDATE xml2db.mapset SET keyword_stratum = '{keywords_string}' WHERE file_identifier = '{file_identifier}'"
+          cur.execute(sql)
+        if len(keyword_place) > 0:
+          keywords_string = ', '.join(map(str, keyword_place))
+          keywords_string = '{'+keywords_string+'}'
+          sql = f"UPDATE xml2db.mapset SET keyword_place = '{keywords_string}' WHERE file_identifier = '{file_identifier}'"
+          cur.execute(sql)
 
         # access_constraints
         for elem in root.findall('.//gmd:identificationInfo/gmd:MD_DataIdentification/gmd:resourceConstraints/gmd:MD_LegalConstraints/gmd:accessConstraints/gmd:MD_RestrictionCode', ns):
