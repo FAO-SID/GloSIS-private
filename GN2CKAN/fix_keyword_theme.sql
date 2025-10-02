@@ -149,6 +149,7 @@ UPDATE xml2db.mapset SET keyword_theme = array_replace(keyword_theme, 'Ecologica
 UPDATE xml2db.mapset SET keyword_theme = array_replace(keyword_theme, 'Anthropogenic Soils', 'Soil');
 UPDATE xml2db.mapset SET keyword_theme = array_replace(keyword_theme, 'soil', 'Soil');
 UPDATE xml2db.mapset SET keyword_theme = array_replace(keyword_theme, 'Soil Association', 'Soil');
+UPDATE xml2db.mapset SET keyword_theme = array_replace(keyword_theme, 'Soil Classification', 'Soil');
 UPDATE xml2db.mapset SET keyword_theme = array_replace(keyword_theme, 'Soil Chemicophysical Properties', 'Soil');
 UPDATE xml2db.mapset SET keyword_theme = array_replace(keyword_theme, 'Soil Chemistry', 'Soil');
 UPDATE xml2db.mapset SET keyword_theme = array_replace(keyword_theme, 'Soil Conservation', 'Soil');
