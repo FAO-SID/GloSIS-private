@@ -1,3 +1,8 @@
+UPDATE xml2db.mapset SET title = REPLACE(title, '&', 'and') WHERE title ILIKE '%&%';--108
+UPDATE xml2db.mapset SET abstract = REPLACE(abstract, '&', 'and') WHERE abstract ILIKE '%&%';--356
+UPDATE xml2db.mapset SET abstract = REPLACE(abstract, '>', ' ') WHERE abstract ILIKE '%>%';--1
+UPDATE xml2db.mapset SET abstract = REPLACE(abstract, '<', ' ') WHERE abstract ILIKE '%<%';--1
+
 UPDATE xml2db.mapset SET title = REPLACE(title, ' � ', ' à ') WHERE title ILIKE '% � %';
 UPDATE xml2db.mapset SET title = REPLACE(title, ' �d', ' éd') WHERE title ILIKE '% �d%';--12
 UPDATE xml2db.mapset SET title = REPLACE(title, '1�re', '1ère') WHERE title ILIKE '%1�re%';--5

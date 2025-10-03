@@ -1,3 +1,4 @@
+UPDATE xml2db.mapset SET keyword_place = REPLACE(keyword_place::text, '&', 'and')::text[] WHERE keyword_place::text ILIKE '%&%';--1
 
 UPDATE xml2db.mapset SET keyword_theme = array_replace(keyword_theme, '.All Subjects', 'All Subjects');
 UPDATE xml2db.mapset SET keyword_theme = array_replace(keyword_theme, 'Administraitve', 'Administrative');
