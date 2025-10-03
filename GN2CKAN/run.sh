@@ -128,7 +128,7 @@ psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.soil_paper_maps S
 psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.soil_paper_maps SET country_name = 'Laos' WHERE uuid = 'd7309640-88fd-11da-a88f-000d939bc5d8'"
 psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.soil_paper_maps m SET country_code = c.country_id FROM spatial_metadata.country c WHERE m.country_name = c.en"
 
-# create random points inside countries
+# create random points (per map) inside countries
 psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.soil_paper_maps m SET geom = (SELECT ST_GeometryN(ST_GeneratePoints(c.geom, 1), 1) FROM country_geom c WHERE c.country_id = m.country_code ORDER BY ST_Area(c.geom) DESC LIMIT 1)"
 psql -h localhost -p 5432 -d iso19139 -U sis -c "DROP TABLE IF EXISTS country_geom"
 
