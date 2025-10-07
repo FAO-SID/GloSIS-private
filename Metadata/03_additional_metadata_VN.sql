@@ -22,7 +22,12 @@ WHERE m.country_id = 'VN'
 -- title
 UPDATE spatial_metadata.mapset m SET title = t.title
     FROM (SELECT DISTINCT m.mapset_id, 
-                          'GSASmap - '||p.name||' ('||coalesce(c.en,'')||' - '||coalesce(p.unit_of_measure_id,'')||' - '||coalesce(l.distance,'')||' '||coalesce(l.distance_uom,'')||' - '||coalesce(EXTRACT( YEAR FROM m.creation_date)::text,'')||')' AS title
+                          'GSASmap - '||p.name||' ('||coalesce(c.en,'')||' - '||coalesce(p.unit_of_measure_id,'')||' - '|| 
+                          CASE
+                            WHEN l.distance = '0.0083333' THEN '1 km'
+                            WHEN l.distance = '0.0022457' THEN '250 m'
+                            ELSE l.distance
+                          END||' - '||coalesce(EXTRACT( YEAR FROM m.creation_date)::text,'')||')' AS title
             FROM spatial_metadata.mapset m
             LEFT JOIN spatial_metadata.property p ON p.property_id = m.property_id
             LEFT JOIN spatial_metadata.country c ON c.country_id = m.country_id
@@ -31,7 +36,12 @@ UPDATE spatial_metadata.mapset m SET title = t.title
 
 UPDATE spatial_metadata.mapset m SET title = t.title
     FROM (SELECT DISTINCT m.mapset_id, 
-                          'GSNmap - '||p.name||' ('||coalesce(c.en,'')||' - '||coalesce(p.unit_of_measure_id,'')||' - '||coalesce(l.distance,'')||' '||coalesce(l.distance_uom,'')||' - '||coalesce(EXTRACT( YEAR FROM m.creation_date)::text,'')||')' AS title
+                          'GSNmap - '||p.name||' ('||coalesce(c.en,'')||' - '||coalesce(p.unit_of_measure_id,'')||' - '|| 
+                          CASE
+                            WHEN l.distance = '0.0083333' THEN '1 km'
+                            WHEN l.distance = '0.0022457' THEN '250 m'
+                            ELSE l.distance
+                          END||' - '||coalesce(EXTRACT( YEAR FROM m.creation_date)::text,'')||')' AS title
             FROM spatial_metadata.mapset m
             LEFT JOIN spatial_metadata.property p ON p.property_id = m.property_id
             LEFT JOIN spatial_metadata.country c ON c.country_id = m.country_id
@@ -40,7 +50,12 @@ UPDATE spatial_metadata.mapset m SET title = t.title
 
 UPDATE spatial_metadata.mapset m SET title = t.title
     FROM (SELECT DISTINCT m.mapset_id, 
-                          p.name||' ('||coalesce(c.en,'')||' - '||coalesce(p.unit_of_measure_id,'')||' - '||coalesce(l.distance,'')||' '||coalesce(l.distance_uom,'')||' - '||coalesce(EXTRACT( YEAR FROM m.creation_date)::text,'')||')' AS title
+                          p.name||' ('||coalesce(c.en,'')||' - '||coalesce(p.unit_of_measure_id,'')||' - '|| 
+                          CASE
+                            WHEN l.distance = '0.0083333' THEN '1 km'
+                            WHEN l.distance = '0.0022457' THEN '250 m'
+                            ELSE l.distance
+                          END||' - '||coalesce(EXTRACT( YEAR FROM m.creation_date)::text,'')||')' AS title
             FROM spatial_metadata.mapset m
             LEFT JOIN spatial_metadata.property p ON p.property_id = m.property_id
             LEFT JOIN spatial_metadata.country c ON c.country_id = m.country_id
