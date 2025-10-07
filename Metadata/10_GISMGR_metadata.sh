@@ -52,7 +52,6 @@ create_metadata() {
         else
             echo "Does not exist. Creating..."
             HTTP_METHOD="POST"
-            continue
         fi
         
         echo "\"owner_org\": \"glosis\"," >> "$FILE_JSON"
