@@ -108,7 +108,7 @@ CREATE TABLE xml2db.layer (
   n_bands integer,
   metadata text[],
   map text,
-  CONSTRAINT layer_distance_uom_check CHECK ((distance_uom = ANY (ARRAY['m', 'km', 'deg'])))
+  CONSTRAINT layer_distance_uom_check CHECK ((distance_uom = ANY (ARRAY['m', 'km', 'deg','arc-minutes','arc-second'])))
 );
 ALTER TABLE xml2db.layer OWNER TO sis;
 GRANT SELECT ON TABLE xml2db.layer TO sis_r;
@@ -156,7 +156,7 @@ CREATE TABLE xml2db.url (
   protocol text NOT NULL,
   url text NOT NULL,
   url_name text NOT NULL
-  CONSTRAINT url_protocol_check CHECK ((protocol = ANY (ARRAY['OGC:WMS','OGC:WMTS','WWW:LINK-1.0-http--link', 'WWW:LINK-1.0-http--related', 'WWW:DOWNLOAD-1.0-http--download', 'OGC:WMS-1.1.1-http-get-map'])))
+  CONSTRAINT url_protocol_check CHECK ((protocol = ANY (ARRAY['OGC:WFS','OGC:WCS','OGC:WMS','OGC:WMTS','WWW:LINK-1.0-http--link', 'WWW:LINK-1.0-http--related', 'WWW:DOWNLOAD-1.0-http--download', 'OGC:WMS-1.1.1-http-get-map'])))
 );
 ALTER TABLE xml2db.url OWNER TO sis;
 GRANT SELECT ON TABLE xml2db.url TO sis_r;
@@ -170,10 +170,6 @@ CREATE TABLE xml2db.soil_paper_maps (
   keywords text,
   title text,
   abstract text,
-  w numeric(10,6),
-  e numeric(10,6),
-  s numeric(10,6),
-  n numeric(10,6),
   download_url text,
   metadata_url text,
   geom geometry(point, 4326)

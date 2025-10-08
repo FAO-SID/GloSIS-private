@@ -5,8 +5,8 @@
 # vars
 CKAN_URL="https://data.apps.fao.org/catalog/api/action/jsonschema_importer"
 API_KEY_CKAN=$(cat /home/carva014/Documents/Arquivo/Trabalho/FAO/API_KEY_CKAN.txt)
-OWNER_ORG="fao-paper-maps"
-XML_FOLDER="/home/carva014/Downloads/FAO/Metadata/retry"
+OWNER_ORG="glosis"
+XML_FOLDER="/home/carva014/Downloads/FAO/Metadata/ISRIC_output"
 LICENSE_ID="CC-BY-4.0"
 DATE=`date +%Y-%m-%d-%H-%M`
 LOG_FILE="log_${DATE}.txt"

@@ -550,7 +550,7 @@ cur = conn.cursor()
 # run function
 template = '/home/carva014/Work/Code/FAO/GloSIS-private/GN2CKAN/template.xml'
 output = '/home/carva014/Downloads/FAO/Metadata/output'
-group_id = 'paper_maps'
+group_id = 'isric'
 bake_xml(group_id, template, output)
 
 # close db connection

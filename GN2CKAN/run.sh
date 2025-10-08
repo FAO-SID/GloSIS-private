@@ -38,42 +38,27 @@ python $PROJECT_DIR/2_xml2db.py
 # fix encoding
 psql -h localhost -p 5432 -d iso19139 -U sis -f $PROJECT_DIR/fix_encoding.sql
 
-# clean up organisation
-psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.organisation SET organisation_id = 'FAO-UN' WHERE organisation_id = 'FAO - UN AGL Documentation Center'"
-psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.organisation SET url = 'https://www.fao.org/soils-portal/data-hub/soil-maps-and-databases/en/' WHERE organisation_id = 'FAO-UN'"
-psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.organisation SET email = 'gsp-secretariat@fao.org' WHERE organisation_id = 'FAO-UN'"
-psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.organisation SET country = 'Italy' WHERE organisation_id = 'FAO-UN'"
-psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.organisation SET city = 'Rome' WHERE organisation_id = 'FAO-UN'"
-psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.organisation SET postal_code = '00153' WHERE organisation_id = 'FAO-UN'"
-psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.organisation SET delivery_point = 'Viale delle Terme di Caracalla' WHERE organisation_id = 'FAO-UN'"
-psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.organisation SET phone = NULL WHERE organisation_id = 'FAO-UN'"
-psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.organisation SET facsimile = NULL WHERE organisation_id = 'FAO-UN'"
+# reset contact
+psql -h localhost -p 5432 -d iso19139 -U sis -c "TRUNCATE xml2db.organisation CASCADE"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "TRUNCATE xml2db.individual CASCADE"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "INSERT INTO xml2db.organisation VALUES ('FAO-UN','https://www.fao.org/soils-portal/data-hub/soil-maps-and-databases/en/','gsp-secretariat@fao.org','Italy','Rome','00153','Viale delle Terme di Caracalla',NULL,NULL)"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "INSERT INTO xml2db.individual VALUES ('FAO Land and Water Division','gsp-secretariat@fao.org')"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "INSERT INTO xml2db.mapset_x_org_x_ind 
+                                                        SELECT m.mapset_id, o.organisation_id, i.individual_id, 'Communication', 'pointOfContact', 'pointOfContact'
+                                                        FROM xml2db.mapset m, xml2db.organisation o, xml2db.individual i
+                                                        ORDER BY m.mapset_id"
 
-# clean up individual
-psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.individual SET individual_id = 'FAO Land and Water Division' WHERE individual_id = 'FAO GIS Manager'"
-psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.individual SET email = 'gsp-secretariat@fao.org' WHERE individual_id = 'FAO Land and Water Division'"
-
-# clean up mapset_x_org_x_ind
-psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset_x_org_x_ind SET organisation_id = 'FAO-UN'"
-psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset_x_org_x_ind SET individual_id = 'FAO Land and Water Division'"
-psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset_x_org_x_ind SET position = 'Communication'"
-psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset_x_org_x_ind SET tag = 'pointOfContact'"
-psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset_x_org_x_ind SET role = 'pointOfContact'"
-psql -h localhost -p 5432 -d iso19139 -U sis -c "DELETE FROM xml2db.organisation WHERE organisation_id NOT LIKE 'FAO-UN'"
-psql -h localhost -p 5432 -d iso19139 -U sis -c "DELETE FROM xml2db.individual WHERE individual_id NOT LIKE 'FAO Land and Water Division'"
-
-# clean up keyword_place
+# clean up keyword_place (1 record)
 psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset SET keyword_place = '{Colombia}' WHERE mapset_id = 'ef9df1a0-88fd-11da-a88f-000d939bc5d8'"
 
-# clean up publication_date
+# clean up publication_date (373 records)
 psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset SET publication_date = NULL WHERE publication_date = '-01-01'"
 
-# clean up url
+# clean up url (47 records)
 psql -h localhost -p 5432 -d iso19139 -U sis -c "DELETE FROM xml2db.url WHERE url NOT ILIKE 'https://storage.googleapis.com/fao-maps-catalog-data%'"
 
-# set md_browse_graphic
+# set md_browse_graphic (914 records)
 psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset m SET md_browse_graphic = u.url FROM xml2db.url u WHERE m.mapset_id = u.mapset_id AND m.md_browse_graphic IS NULL AND u.protocol = 'WWW:LINK-1.0-http--link' AND u.url_name ILIKE '%thumbnail%' AND u.url_name ILIKE '%large%'"
-psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset m SET md_browse_graphic = u.url FROM xml2db.url u WHERE m.mapset_id = u.mapset_id AND m.md_browse_graphic IS NULL AND u.protocol = 'WWW:LINK-1.0-http--link' AND u.url_name ILIKE '%thumbnail%'"
 
 # set distribution_format
 psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.layer SET distribution_format = 'jpg' WHERE mapset_id IN (SELECT mapset_id FROM xml2db.url WHERE protocol = 'WWW:DOWNLOAD-1.0-http--download');"
@@ -87,7 +72,7 @@ psql -h localhost -p 5432 -d iso19139 -U sis -f $PROJECT_DIR/fix_keyword_theme.s
 
 # group existing meaningful metadata
 psql -h localhost -p 5432 -d iso19139 -U sis -c "TRUNCATE xml2db.soil_paper_maps"
-psql -h localhost -p 5432 -d iso19139 -U sis -c "INSERT INTO xml2db.soil_paper_maps (uuid, title, year, keywords, country_name, abstract, download_url, w, e, s, n, metadata_url)
+psql -h localhost -p 5432 -d iso19139 -U sis -c "INSERT INTO xml2db.soil_paper_maps (uuid, title, year, keywords, country_name, abstract, download_url, metadata_url)
         SELECT  m.mapset_id,
                 m.title,
                 EXTRACT(YEAR FROM m.publication_date::date),
@@ -95,10 +80,6 @@ psql -h localhost -p 5432 -d iso19139 -U sis -c "INSERT INTO xml2db.soil_paper_m
                 REPLACE(REPLACE(REPLACE(m.keyword_place::text,'\"',''),'{',''),'}',''),
                 m.abstract,
                 u.url,
-                l.west_bound_longitude,
-                l.east_bound_longitude,
-                l.south_bound_latitude,
-                l.north_bound_latitude,
                 'https://data.apps.fao.org/catalog/iso/'||m.mapset_id
         FROM xml2db.mapset m
         LEFT JOIN xml2db.layer l ON l.mapset_id = m.mapset_id
@@ -156,10 +137,6 @@ psql -h localhost -p 5432 -U sis -d iso19139 -c "\copy (
                 keywords,
                 title,
                 abstract,
-                w,
-                e,
-                s,
-                n,
                 download_url,
                 metadata_url,
                 ST_Y(geom) AS latitude,

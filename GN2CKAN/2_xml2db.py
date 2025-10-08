@@ -22,16 +22,17 @@ def extract_data(directory):
 
     # Check if it's a file (not a directory)
     if os.path.isfile(file_path):
-      # Open the file and read its content
-      with open(file_path, 'r') as file:
-        xml = file.read()
+      # # Open the file and read its content
+      # with open(file_path, 'r', encoding='utf-8') as file:
+      #   xml = file.read()
+      #   root = ET.fromstring(xml)
 
         # verbose
         count = count + 1
         print(count,'\t',filename)
 
         # parse xml
-        root = ET.fromstring(xml)
+        root = ET.parse(file_path).getroot()
         ET.register_namespace('gmd','http://www.isotc211.org/2005/gmd')
         ET.register_namespace('gml','http://www.opengis.net/gml/3.2')
         ET.register_namespace('gco','http://www.isotc211.org/2005/gco')
@@ -39,7 +40,7 @@ def extract_data(directory):
 
         # file_identifier
         file_identifier = root.find('.//gmd:fileIdentifier/gco:CharacterString', ns).text
-        group_id = 'paper_maps'
+        group_id = 'isric'
         if file_identifier is not None:
           sql = f"""INSERT INTO xml2db.group (group_id) VALUES ('{group_id}') ON CONFLICT (group_id) DO NOTHING;
                     INSERT INTO xml2db.mapset (group_id, mapset_id, file_identifier) VALUES ('{group_id}', '{file_identifier}', '{file_identifier}');
@@ -61,6 +62,7 @@ def extract_data(directory):
 
         # ResponsibleParty
         contact_tag_list = ['.//gmd:contact/gmd:CI_ResponsibleParty',
+                            './/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:pointOfContact/gmd:CI_ResponsibleParty',
                             './/gmd:contact/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:pointOfContact/gmd:CI_ResponsibleParty',
                             './/gmd:distributionInfo/gmd:MD_Distribution/gmd:distributionFormat/gmd:distributor/gmd:MD_Distributor/gmd:distributorContact/gmd:CI_ResponsibleParty',
                             './/gmd:dataQualityInfo/gmd:DQ_DataQuality/gmd:lineage/gmd:LI_Lineage/gmd:source/gmd:LI_Source/gmd:sourceStep/gmd:LI_ProcessStep/gmd:processor/gmd:CI_ResponsibleParty']
@@ -79,43 +81,43 @@ def extract_data(directory):
                       WHERE  '{organisation_id}' NOT IN (SELECT organisation_id FROM xml2db.organisation)"""
             cur.execute(sql)
             sql = f"""INSERT INTO xml2db.individual (individual_id) 
-                      SELECT '{individual_id}' 
-                      WHERE  '{individual_id}' NOT IN (SELECT individual_id FROM xml2db.individual)"""
+                      SELECT $${individual_id}$$ 
+                      WHERE  $${individual_id}$$ NOT IN (SELECT individual_id FROM xml2db.individual)"""
             cur.execute(sql)
             sql = f"""INSERT INTO xml2db.mapset_x_org_x_ind (mapset_id, tag, role, position, organisation_id, individual_id)
-                      SELECT  '{file_identifier}', '{tag}', '{role}', '{position}', '{organisation_id}', '{individual_id}'
-                      WHERE  ('{file_identifier}', '{tag}', '{role}', '{position}', '{organisation_id}', '{individual_id}') NOT IN (SELECT mapset_id, tag, role, position, organisation_id, individual_id FROM xml2db.mapset_x_org_x_ind)"""
+                      SELECT  '{file_identifier}', '{tag}', '{role}', '{position}', '{organisation_id}', $${individual_id}$$
+                      WHERE  ('{file_identifier}', '{tag}', '{role}', '{position}', '{organisation_id}', $${individual_id}$$) NOT IN (SELECT mapset_id, tag, role, position, organisation_id, individual_id FROM xml2db.mapset_x_org_x_ind)"""
             cur.execute(sql)
 
-          # contactInfo
-          for elem in root.findall(f'{t}/gmd:contactInfo/gmd:CI_Contact', ns):
-            country        = elem.find('.//gmd:address/gmd:CI_Address/gmd:country/gco:CharacterString', ns).text               if elem.find('.//gmd:address/gmd:CI_Address/gmd:country/gco:CharacterString', ns)               is not None else 'UNKNOWN'
-            city           = elem.find('.//gmd:address/gmd:CI_Address/gmd:city/gco:CharacterString', ns).text                  if elem.find('.//gmd:address/gmd:CI_Address/gmd:city/gco:CharacterString', ns)                  is not None else 'UNKNOWN'
-            postal_code    = elem.find('.//gmd:address/gmd:CI_Address/gmd:postalCode/gco:CharacterString', ns).text            if elem.find('.//gmd:address/gmd:CI_Address/gmd:postalCode/gco:CharacterString', ns)            is not None else 'UNKNOWN'
-            delivery_point = elem.find('.//gmd:address/gmd:CI_Address/gmd:deliveryPoint/gco:CharacterString', ns).text         if elem.find('.//gmd:address/gmd:CI_Address/gmd:deliveryPoint/gco:CharacterString', ns)         is not None else 'UNKNOWN'
-            email          = elem.find('.//gmd:address/gmd:CI_Address/gmd:electronicMailAddress/gco:CharacterString', ns).text if elem.find('.//gmd:address/gmd:CI_Address/gmd:electronicMailAddress/gco:CharacterString', ns) is not None else 'UNKNOWN'
-            phone          = elem.find('.//gmd:phone/gmd:CI_Telephone/gmd:voice/gco:CharacterString', ns).text                 if elem.find('.//gmd:phone/gmd:CI_Telephone/gmd:voice/gco:CharacterString', ns)                 is not None else 'UNKNOWN'
-            facsimile      = elem.find('.//gmd:phone/gmd:CI_Telephone/gmd:facsimile/gco:CharacterString', ns).text             if elem.find('.//gmd:phone/gmd:CI_Telephone/gmd:facsimile/gco:CharacterString', ns)             is not None else 'UNKNOWN'
-            url            = elem.find('.//gmd:onlineResource/gmd:CI_OnlineResource/gmd:linkage/gmd:URL', ns).text             if elem.find('.//gmd:onlineResource/gmd:CI_OnlineResource/gmd:linkage/gmd:URL', ns)             is not None else 'UNKNOWN'
-        
-            sql = f"""UPDATE xml2db.organisation SET country = '{country}' WHERE organisation_id = '{organisation_id}' AND country IS NULL"""
-            cur.execute(sql)
-            sql = f"""UPDATE xml2db.organisation SET city = $${city}$$ WHERE organisation_id = '{organisation_id}' AND city IS NULL"""
-            cur.execute(sql)
-            sql = f"""UPDATE xml2db.organisation SET postal_code = '{postal_code}' WHERE organisation_id = '{organisation_id}' AND postal_code IS NULL"""
-            cur.execute(sql)
-            sql = f"""UPDATE xml2db.organisation SET delivery_point = '{delivery_point}' WHERE organisation_id = '{organisation_id}' AND delivery_point IS NULL"""
-            cur.execute(sql)
-            sql = f"""UPDATE xml2db.organisation SET email = '{email}' WHERE organisation_id = '{organisation_id}' AND email IS NULL"""
-            cur.execute(sql)
-            sql = f"UPDATE xml2db.individual SET email = '{email}' WHERE individual_id = '{individual_id}' AND email IS NULL"
-            cur.execute(sql)
-            sql = f"""UPDATE xml2db.organisation SET phone = '{phone}' WHERE organisation_id = '{organisation_id}' AND phone IS NULL"""
-            cur.execute(sql)
-            sql = f"""UPDATE xml2db.organisation SET facsimile = '{facsimile}' WHERE organisation_id = '{organisation_id}' AND facsimile IS NULL"""
-            cur.execute(sql)
-            sql = f"""UPDATE xml2db.organisation SET url = '{url}' WHERE organisation_id = '{organisation_id}' AND url IS NULL"""
-            cur.execute(sql)
+            # contactInfo
+            for elem in root.findall(f'{t}/gmd:contactInfo/gmd:CI_Contact', ns):
+              country        = elem.find('.//gmd:address/gmd:CI_Address/gmd:country/gco:CharacterString', ns).text               if elem.find('.//gmd:address/gmd:CI_Address/gmd:country/gco:CharacterString', ns)               is not None else 'UNKNOWN'
+              city           = elem.find('.//gmd:address/gmd:CI_Address/gmd:city/gco:CharacterString', ns).text                  if elem.find('.//gmd:address/gmd:CI_Address/gmd:city/gco:CharacterString', ns)                  is not None else 'UNKNOWN'
+              postal_code    = elem.find('.//gmd:address/gmd:CI_Address/gmd:postalCode/gco:CharacterString', ns).text            if elem.find('.//gmd:address/gmd:CI_Address/gmd:postalCode/gco:CharacterString', ns)            is not None else 'UNKNOWN'
+              delivery_point = elem.find('.//gmd:address/gmd:CI_Address/gmd:deliveryPoint/gco:CharacterString', ns).text         if elem.find('.//gmd:address/gmd:CI_Address/gmd:deliveryPoint/gco:CharacterString', ns)         is not None else 'UNKNOWN'
+              email          = elem.find('.//gmd:address/gmd:CI_Address/gmd:electronicMailAddress/gco:CharacterString', ns).text if elem.find('.//gmd:address/gmd:CI_Address/gmd:electronicMailAddress/gco:CharacterString', ns) is not None else 'UNKNOWN'
+              phone          = elem.find('.//gmd:phone/gmd:CI_Telephone/gmd:voice/gco:CharacterString', ns).text                 if elem.find('.//gmd:phone/gmd:CI_Telephone/gmd:voice/gco:CharacterString', ns)                 is not None else 'UNKNOWN'
+              facsimile      = elem.find('.//gmd:phone/gmd:CI_Telephone/gmd:facsimile/gco:CharacterString', ns).text             if elem.find('.//gmd:phone/gmd:CI_Telephone/gmd:facsimile/gco:CharacterString', ns)             is not None else 'UNKNOWN'
+              url            = elem.find('.//gmd:onlineResource/gmd:CI_OnlineResource/gmd:linkage/gmd:URL', ns).text             if elem.find('.//gmd:onlineResource/gmd:CI_OnlineResource/gmd:linkage/gmd:URL', ns)             is not None else 'UNKNOWN'
+          
+              sql = f"""UPDATE xml2db.organisation SET country = '{country}' WHERE organisation_id = '{organisation_id}' AND country IS NULL"""
+              cur.execute(sql)
+              sql = f"""UPDATE xml2db.organisation SET city = $${city}$$ WHERE organisation_id = '{organisation_id}' AND city IS NULL"""
+              cur.execute(sql)
+              sql = f"""UPDATE xml2db.organisation SET postal_code = '{postal_code}' WHERE organisation_id = '{organisation_id}' AND postal_code IS NULL"""
+              cur.execute(sql)
+              sql = f"""UPDATE xml2db.organisation SET delivery_point = '{delivery_point}' WHERE organisation_id = '{organisation_id}' AND delivery_point IS NULL"""
+              cur.execute(sql)
+              sql = f"""UPDATE xml2db.organisation SET email = '{email}' WHERE organisation_id = '{organisation_id}' AND email IS NULL"""
+              cur.execute(sql)
+              sql = f"UPDATE xml2db.individual SET email = '{email}' WHERE individual_id = $${individual_id}$$ AND email IS NULL"
+              cur.execute(sql)
+              sql = f"""UPDATE xml2db.organisation SET phone = '{phone}' WHERE organisation_id = '{organisation_id}' AND phone IS NULL"""
+              cur.execute(sql)
+              sql = f"""UPDATE xml2db.organisation SET facsimile = '{facsimile}' WHERE organisation_id = '{organisation_id}' AND facsimile IS NULL"""
+              cur.execute(sql)
+              sql = f"""UPDATE xml2db.organisation SET url = '{url}' WHERE organisation_id = '{organisation_id}' AND url IS NULL"""
+              cur.execute(sql)
 
         # url
         for elem in root.findall('.//gmd:onLine/gmd:CI_OnlineResource', ns):
@@ -132,7 +134,7 @@ def extract_data(directory):
             url_name = elem.find('.//gmd:name/gmd:CharacterString', ns).text # ERROR in metadata! it should be gco:CharacterString
           else:
             url_name = 'ERROR: no name!'
-          sql = f"INSERT INTO xml2db.url (mapset_id, url, protocol, url_name) VALUES ('{file_identifier}', '{url}', '{protocol}', '{url_name}')"
+          sql = f"INSERT INTO xml2db.url (mapset_id, url, protocol, url_name) VALUES ('{file_identifier}', '{url}', '{protocol}', '{url_name}') ON CONFLICT (mapset_id, protocol, url) DO NOTHING"
           cur.execute(sql)
 
         # metadata_standard_name
@@ -201,18 +203,18 @@ def extract_data(directory):
             cur.execute(sql)
 
         # citation_rs_identifier_code
-        for elem in root.findall('.//gmd:identificationInfo/gmd:MD_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:identifier/gmd:RS_Identifier/gmd:code/gco:CharacterString', ns):
-          citation_rs_identifier_code = elem.text
-          if citation_rs_identifier_code is not None:
-            sql = f"UPDATE xml2db.mapset SET citation_rs_identifier_code = '{citation_rs_identifier_code}' WHERE mapset_id = '{file_identifier}'"
-            cur.execute(sql)
+        # for elem in root.findall('.//gmd:identificationInfo/gmd:MD_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:identifier/gmd:RS_Identifier/gmd:code/gco:CharacterString', ns):
+        #   citation_rs_identifier_code = elem.text
+        #   if citation_rs_identifier_code is not None:
+        #     sql = f"UPDATE xml2db.mapset SET citation_rs_identifier_code = '{citation_rs_identifier_code}' WHERE mapset_id = '{file_identifier}'"
+        #     cur.execute(sql)
 
-        # citation_rs_identifier_code_space
-        for elem in root.findall('.//gmd:identificationInfo/gmd:MD_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:identifier/gmd:RS_Identifier/gmd:codeSpace/gco:CharacterString', ns):
-          citation_rs_identifier_code_space = elem.text
-          if citation_rs_identifier_code_space is not None:
-            sql = f"UPDATE xml2db.mapset SET citation_rs_identifier_code_space = '{citation_rs_identifier_code_space}' WHERE mapset_id = '{file_identifier}'"
-            cur.execute(sql)
+        # # citation_rs_identifier_code_space
+        # for elem in root.findall('.//gmd:identificationInfo/gmd:MD_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:identifier/gmd:RS_Identifier/gmd:codeSpace/gco:CharacterString', ns):
+        #   citation_rs_identifier_code_space = elem.text
+        #   if citation_rs_identifier_code_space is not None:
+        #     sql = f"UPDATE xml2db.mapset SET citation_rs_identifier_code_space = '{citation_rs_identifier_code_space}' WHERE mapset_id = '{file_identifier}'"
+        #     cur.execute(sql)
 
         # citation_md_identifier_code
         for elem in root.findall('.//gmd:identificationInfo/gmd:MD_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:identifier/gmd:MD_Identifier/gmd:code/gco:CharacterString', ns):
@@ -279,7 +281,7 @@ def extract_data(directory):
           keywords_string = ', '.join(map(str, keyword_stratum))
           keywords_string = '{'+keywords_string+'}'
           sql = f"UPDATE xml2db.mapset SET keyword_stratum = '{keywords_string}' WHERE file_identifier = '{file_identifier}'"
-          cur.execute(sql)
+          # cur.execute(sql)
         if len(keyword_place) > 0:
           keywords_string = ', '.join(map(str, keyword_place))
           keywords_string = '{'+keywords_string+'}'
@@ -318,14 +320,14 @@ def extract_data(directory):
         for elem in root.findall('.//gmd:identificationInfo/gmd:MD_DataIdentification/gmd:spatialResolution/gmd:MD_Resolution/gmd:distance/gco:Distance', ns):
           distance_uom = elem.attrib['uom']
           if distance_uom is not None:
-            sql = f"UPDATE xml2db.mapset SET distance_uom = $${distance_uom}$$ WHERE file_identifier = '{file_identifier}'"
+            sql = f"UPDATE xml2db.layer SET distance_uom = $${distance_uom}$$ WHERE layer_id = '{file_identifier}'"
             cur.execute(sql)
 
         # distance
         for elem in root.findall('.//gmd:identificationInfo/gmd:MD_DataIdentification/gmd:spatialResolution/gmd:MD_Resolution/gmd:distance/gco:Distance', ns):
           distance = elem.text
           if distance is not None:
-            sql = f"UPDATE xml2db.mapset SET distance = $${distance}$$ WHERE file_identifier = '{file_identifier}'"
+            sql = f"UPDATE xml2db.layer SET distance = $${distance}$$ WHERE layer_id = '{file_identifier}'"
             cur.execute(sql)
 
         # topic_category

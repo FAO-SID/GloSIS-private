@@ -1,0 +1,195 @@
+#!/bin/sh
+
+
+# variables
+clear
+PROJECT_DIR="/home/carva014/Work/Code/FAO/GloSIS-private/GN2CKAN"
+input_dir=/home/carva014/Downloads/FAO/Metadata/isric
+output_dir=/home/carva014/Downloads/FAO/Metadata/input
+
+mkdir -p "$output_dir"
+
+find "$input_dir" -type f -path "*/metadata/metadata.xml" | while read -r f; do
+  uuid=$(basename "$(dirname "$(dirname "$f")")")
+  cp "$f" "$output_dir/${uuid}.xml"
+done
+
+# create db schema
+psql -h localhost -p 5432 -d iso19139 -U sis -f $PROJECT_DIR/1_schema.sql
+
+# drop constraints
+psql -h localhost -p 5432 -d iso19139 -U sis -c " ALTER TABLE xml2db.url DROP CONSTRAINT url_protocol_check;
+                                                  ALTER TABLE xml2db.mapset DROP CONSTRAINT mapset_status_check;
+                                                  ALTER TABLE xml2db.layer DROP CONSTRAINT layer_distance_uom_check;
+                                                  ALTER TABLE xml2db.mapset DROP CONSTRAINT mapset_access_constraints_check;
+                                                  ALTER TABLE xml2db.mapset_x_org_x_ind DROP CONSTRAINT mapset_x_org_x_ind_role_check;"
+
+# xml to db
+python $PROJECT_DIR/2_xml2db.py
+
+# delete isric HWSD metadata
+psql -h localhost -p 5432 -d iso19139 -U sis -c "DELETE FROM xml2db.mapset WHERE mapset_id = 'bda461b1-2f35-4d0c-bb16-44297068e10d'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "DELETE FROM xml2db.mapset WHERE mapset_id = '54aebf11-ec73-4ff8-bf6c-ecff4b0725ea'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "DELETE FROM xml2db.organisation WHERE organisation_id NOT IN (SELECT organisation_id FROM xml2db.mapset_x_org_x_ind)"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "DELETE FROM xml2db.individual WHERE individual_id NOT IN (SELECT individual_id FROM xml2db.mapset_x_org_x_ind)"
+
+# clean up contacts
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset_x_org_x_ind SET organisation_id = 'ISRIC - World Soil Information' WHERE organisation_id = 'ISRIC - World Soil Information (WDC - Soils)'"
+
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset_x_org_x_ind SET individual_id = 'Data infodesk' WHERE individual_id = 'Custodian'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset_x_org_x_ind SET individual_id = 'Data infodesk' WHERE individual_id = 'Ulan Turdukulov'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset_x_org_x_ind SET individual_id = 'Data infodesk' WHERE individual_id = 'None'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset_x_org_x_ind SET individual_id = 'Data infodesk' WHERE individual_id = 'Data info desk'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset_x_org_x_ind SET individual_id = 'Luis de Sousa' WHERE individual_id = 'Luis de |Sousa'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset_x_org_x_ind SET individual_id = 'Luis de Sousa' WHERE individual_id = 'Luís Moreira de Sousa'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset_x_org_x_ind SET individual_id = 'Luis de Sousa' WHERE individual_id = 'Luid de Sousa'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset_x_org_x_ind SET individual_id = 'Luis de Sousa' WHERE individual_id = 'luis de Sousa'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset_x_org_x_ind SET individual_id = 'Luis de Sousa' WHERE individual_id = 'Luis M. de Sousa'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset_x_org_x_ind SET individual_id = 'Luis Calisto' WHERE individual_id = 'Luis Callisto'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset_x_org_x_ind SET individual_id = 'Maria Gonzalez Ruiperez' WHERE individual_id = 'Maria Ruiperez Gonzalez'"
+
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset_x_org_x_ind SET position = 'Communication' WHERE individual_id = 'Data infodesk'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset_x_org_x_ind SET position = 'Communication' WHERE individual_id = 'ISCN support'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset_x_org_x_ind SET position = 'Remote sensing' WHERE individual_id = 'Harm Bartholomeus'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset_x_org_x_ind SET position = 'Soil mapping specialist' WHERE individual_id = 'Laura Poggio'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset_x_org_x_ind SET position = 'Database expert' WHERE individual_id = 'Luis Calisto'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset_x_org_x_ind SET position = 'Senior soil scientist' WHERE individual_id = 'Niels Batjes'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset_x_org_x_ind SET position = 'GIS technician' WHERE individual_id = 'Betony Colman'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset_x_org_x_ind SET position = 'Guest researcher' WHERE individual_id = 'Luis de Sousa'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset_x_org_x_ind SET position = 'Soil laboratory expert' WHERE individual_id = 'Ad van Oostrum'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset_x_org_x_ind SET position = 'Soil mapping specialist' WHERE individual_id = 'Bas Kempen'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset_x_org_x_ind SET position = 'Geoinformatic' WHERE individual_id = 'Eloi Ribeiro'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset_x_org_x_ind SET position = 'Senior Scientist' WHERE individual_id = 'Gerard Heuvelink'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset_x_org_x_ind SET position = 'Remote Sensing' WHERE individual_id = 'Maria Gonzalez Ruiperez'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset_x_org_x_ind SET position = 'Sustainable land management' WHERE individual_id = 'Stephan Mantel'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset_x_org_x_ind SET position = 'Soil mapping specialist' WHERE individual_id = 'Tom Hengl'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset_x_org_x_ind SET position = 'Soil mapping specialist' WHERE individual_id = 'Maria Eliza Turek'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset_x_org_x_ind SET position = 'Database expert' WHERE individual_id = 'Piet Tempel'"
+
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset_x_org_x_ind SET role = 'author' WHERE role = 'Author'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset_x_org_x_ind SET role = 'author' WHERE role = 'author_1'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset_x_org_x_ind SET role = 'author' WHERE role = 'author_2'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset_x_org_x_ind SET role = 'author' WHERE role = 'author_3'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset_x_org_x_ind SET role = 'owner' WHERE role = 'Owner'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset_x_org_x_ind SET role = 'principalInvestigator' WHERE role = 'Principal investigator'"
+
+psql -h localhost -p 5432 -d iso19139 -U sis -c "DELETE FROM xml2db.organisation WHERE organisation_id NOT IN (SELECT organisation_id FROM xml2db.mapset_x_org_x_ind)"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "DELETE FROM xml2db.individual WHERE individual_id NOT IN (SELECT individual_id FROM xml2db.mapset_x_org_x_ind)"
+
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.organisation SET url = 'https://isric.org' WHERE organisation_id = 'ISRIC - World Soil Information'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.organisation SET email = 'data@isric.org' WHERE organisation_id = 'ISRIC - World Soil Information'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.organisation SET country = 'Netherlands' WHERE organisation_id = 'ISRIC - World Soil Information'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.organisation SET city = 'Wageningen' WHERE organisation_id = 'ISRIC - World Soil Information'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.organisation SET postal_code = '6708 PB' WHERE organisation_id = 'ISRIC - World Soil Information'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.organisation SET delivery_point = 'Droevendaalsesteeg 3, Building 101' WHERE organisation_id = 'ISRIC - World Soil Information'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.organisation SET phone = '+31 317 483 735' WHERE organisation_id = 'ISRIC - World Soil Information'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.organisation SET facsimile = NULL WHERE organisation_id = 'ISRIC - World Soil Information'"
+
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.organisation SET url = 'https://iscn.fluxdata.org' WHERE organisation_id = 'ISCN - International Soil Carbon Network'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.organisation SET email = NULL WHERE organisation_id = 'ISCN - International Soil Carbon Network'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.organisation SET country = NULL WHERE organisation_id = 'ISCN - International Soil Carbon Network'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.organisation SET city = NULL WHERE organisation_id = 'ISCN - International Soil Carbon Network'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.organisation SET postal_code = NULL WHERE organisation_id = 'ISCN - International Soil Carbon Network'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.organisation SET delivery_point = NULL WHERE organisation_id = 'ISCN - International Soil Carbon Network'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.organisation SET phone = NULL WHERE organisation_id = 'ISCN - International Soil Carbon Network'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.organisation SET facsimile = NULL WHERE organisation_id = 'ISCN - International Soil Carbon Network'"
+
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.organisation SET url = 'https://www.wur.nl' WHERE organisation_id = 'Wageningen University'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.organisation SET email = NULL WHERE organisation_id = 'Wageningen University'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.organisation SET country = 'Netherlands' WHERE organisation_id = 'Wageningen University'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.organisation SET city = 'Wageningen' WHERE organisation_id = 'Wageningen University'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.organisation SET postal_code = '6708 PB' WHERE organisation_id = 'Wageningen University'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.organisation SET delivery_point = 'Droevendaalsesteeg 4' WHERE organisation_id = 'Wageningen University'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.organisation SET phone = '+31 317 480 100' WHERE organisation_id = 'Wageningen University'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.organisation SET facsimile = NULL WHERE organisation_id = 'Wageningen University'"
+
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.organisation SET url = NULL WHERE url IN ('None','UNKNOWN')"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.organisation SET postal_code = NULL WHERE postal_code IN ('None','UNKNOWN')"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.organisation SET delivery_point = NULL WHERE delivery_point IN ('None','UNKNOWN')"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.organisation SET phone = NULL WHERE phone IN ('None','UNKNOWN')"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.organisation SET facsimile = NULL WHERE facsimile IN ('None','UNKNOWN')"
+
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.individual SET email = 'betony.colman@isric.org' WHERE individual_id = 'Betony Colman'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.individual SET email = 'harm.bartholomeus@wur.nl' WHERE individual_id = 'Harm Bartholomeus'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.individual SET email = 'laura.poggio@isric.org' WHERE individual_id = 'Laura Poggio'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.individual SET email = 'luis.callisto@isric.org' WHERE individual_id = 'Luis Calisto'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.individual SET email = 'niels.batjes@isric.org' WHERE individual_id = 'Niels Batjes'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.individual SET email = 'eloi.ribeiro@fao.org' WHERE individual_id = 'Eloi Ribeiro'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.individual SET email = 'tom.hengl@opengeohub.org' WHERE individual_id = 'Tom Hengl'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.individual SET email = 'casparit@landcareresearch.co.nz' WHERE individual_id = 'Thomas Caspari'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.individual SET email = 'maria.ruiperezgonzalez@wur.nl' WHERE individual_id = 'Maria Gonzalez Ruiperez'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.individual SET email = 'stephan.mantel@isric.org' WHERE individual_id = 'Stephan Mantel'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.individual SET email = 'gerard.heuvelink@isric.org' WHERE individual_id = 'Gerard Heuvelink'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.individual SET email = 'luis.moreira.de.sousa@tecnico.ulisboa.pt' WHERE individual_id = 'Luis de Sousa'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.individual SET email = 'erik.vandenbergh@wur.nl' WHERE individual_id = 'Erik van den Berg'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.individual SET email = 'konstantin.ivushkin@wur.nl' WHERE individual_id = 'Konstantin Ivushkin'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.individual SET email = 'mariaelizaturek@gmail.com' WHERE individual_id = 'Maria Eliza Turek'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.individual SET email = 'tiagobramos@tecnico.ulisboa.pt' WHERE individual_id = 'Tiago Ramos'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.individual SET email = 'ad.vanoostrum@wur.nl' WHERE individual_id = 'Ad van Oostrum'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.individual SET email = 'iscnchair@gmail.com' WHERE individual_id = 'Jennifer Harden'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.individual SET email = 'r.nijbroek@cgiar.org' WHERE individual_id = 'Ravic Nijbroek'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.individual SET email = 'data@isric.org' WHERE individual_id IN ('Jan R.M. Huting','Peter N Macharia','J.A. Dijkshoorn','W .G. Sombroek','R.T.A. Hakkeling','Godert van Lynden','L.R. Oldeman','Piet Tempel','Koos Dijkshoorn')"
+
+# fix url protocol
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.url SET protocol = 'WWW:LINK-1.0-http--link' WHERE protocol = 'DOI'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.url SET protocol = 'OGC:WMS' WHERE protocol = 'OGC:WMS-1.3.0-http-get-capabilities'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.url SET protocol = 'WWW:LINK-1.0-http--link' WHERE protocol = 'image/tiff; application=geotiff'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.url SET protocol = 'WWW:LINK-1.0-http--link' WHERE protocol = 'WWW:DOWNLOAD-1.0-ftp--download'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.url SET protocol = 'WWW:LINK-1.0-http--link' WHERE protocol = 'WWW:DOWNLOAD-1.0-http--download'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.url SET protocol = 'WWW:LINK-1.0-http--link' WHERE url ILIKE 'https://storage.googleapis.com/isric-share-soilgrids%'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.url SET protocol = 'WWW:LINK-1.0-http--link' WHERE url ILIKE 'https://files.isric.org/soilgrids/%'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "DELETE FROM xml2db.url WHERE protocol = 'None'"
+
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.url SET url_name = '#thumbnail#' WHERE url_name ILIKE '#thumbnail# - ERROR: no %'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.url SET url_name = 'Download' WHERE url_name = 'Download data'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.url SET url_name = 'Download' WHERE url_name = 'Download zip'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.url SET url_name = 'Download' WHERE url_name = 'Download zipped dataset'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.url SET url_name = 'Download' WHERE url_name = 'Download GeoTIFF at depth'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.url SET url_name = 'Download' WHERE url_name = 'Download (WebDAV)'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.url SET url_name = 'Download' WHERE url_name = 'Download v1.2'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.url SET url_name = 'FAQ' WHERE url_name = 'FAQ project webpage'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.url SET url_name = 'FAQ' WHERE url_name = 'Project webpage (FAQ)'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.url SET url_name = 'FAQ' WHERE url_name = 'Project webpage (FAQ)'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.url SET url_name = 'FAQ' WHERE url_name = 'WoSIS FAQ webpage'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.url SET url_name = 'FAQ' WHERE url_name = 'Project webpage (FAQ WoSIS)'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.url SET url_name = 'Scientific paper' WHERE url_name = 'Scientific Paper'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.url SET url_name = 'Scientific paper' WHERE url_name = 'Scientific publication (Turek et al. 2021)'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.url SET url_name = 'Scientific paper' WHERE url_name = 'Article'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.url SET url_name = ':'||url_name WHERE protocol IN ('OGC:WCS','OGC:WFS','OGC:WMS') AND url_name NOT ILIKE ':%'"
+
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.url SET url = 'https://files.isric.org/public/other/WD-ICRAF-Spectral_MIR.zip' WHERE mapset_id = '1b65024a-cd9f-11e9-a8f9-a0481ca9e724' AND url = 'https://files.isric.org/public/other/'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.url SET url = 'https://files.isric.org/public/other/ICRAF-ISRICVNIRSoilDatabase.zip' WHERE mapset_id = '1081ac75-78f7-4db3-b8cc-23b78a3aa769' AND url = 'https://files.isric.org/public/other/'"
+
+# fix status
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset SET status = 'completed' WHERE status = 'Completed'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset SET status = 'onGoing' WHERE status = 'ongoing'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset SET status = 'onGoing' WHERE status = 'On going'"
+
+# fix access_constraints
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset SET access_constraints = 'license' WHERE access_constraints = 'License'"
+
+# fix other_constraints
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset SET other_constraints = 'CC-BY-4.0' WHERE other_constraints = 'Attribution 4.0 International (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset SET other_constraints = 'CC-BY-NC-3.0' WHERE other_constraints = 'Attribution-NonCommercial 3.0 International (CC BY-NC 3.0), https://creativecommons.org/licenses/by-nc/3.0/'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset SET other_constraints = 'CC-BY-NC-SA-4.0' WHERE other_constraints = 'Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0), https://creativecommons.org/licenses/by-nc-sa/4.0/'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset SET other_constraints = 'CC0-1.0' WHERE other_constraints = 'CC0 1.0 Universal (CC0 1.0) Public Domain Dedication, https://creativecommons.org/publicdomain/zero/1.0/deed.en'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset SET other_constraints = 'CC-BY-NC-SA-4.0' WHERE other_constraints = 'http://coral.ufsm.br/febr/politica-de-dados/'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset SET other_constraints = 'CC-BY-NC-4.0' WHERE other_constraints = 'Licenced per profile, as specified by data provider and indicated in the data'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset SET other_constraints = 'CC-BY-NC-4.0' WHERE other_constraints = 'Licenced per profile, as specified by data provider and indicated in the data (CC-BY or CC-BY-NC)'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset SET other_constraints = 'CC-BY-NC-4.0' WHERE other_constraints = 'Licenced per profile, as specified by data provider and indicated in the data set'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset SET other_constraints = 'CC-BY-4.0' WHERE other_constraints = 'U.S. Public Domain http://www.usa.gov/publicdomain/label/1.0/'"
+
+# fix distance_uom
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.layer SET distance_uom = 'arc-minutes' WHERE distance_uom = 'minutes'"
+
+psql -h localhost -p 5432 -d iso19139 -U sis -c " ALTER TABLE xml2db.url ADD CONSTRAINT url_protocol_check CHECK ((protocol = ANY (ARRAY['OGC:WFS','OGC:WCS','OGC:WMS','OGC:WMTS','WWW:LINK-1.0-http--link', 'WWW:LINK-1.0-http--related', 'WWW:DOWNLOAD-1.0-http--download', 'OGC:WMS-1.1.1-http-get-map'])));
+                                                  ALTER TABLE xml2db.mapset ADD CONSTRAINT mapset_status_check CHECK ((status = ANY (ARRAY['completed', 'historicalArchive', 'obsolete', 'onGoing', 'planned', 'required', 'underDevelopment'])));
+                                                  ALTER TABLE xml2db.layer ADD CONSTRAINT layer_distance_uom_check CHECK ((distance_uom = ANY (ARRAY['m', 'km', 'deg','arc-minutes','arc-second'])));
+                                                  ALTER TABLE xml2db.mapset ADD CONSTRAINT mapset_access_constraints_check CHECK ((access_constraints = ANY (ARRAY['copyright', 'patent', 'patentPending', 'trademark', 'license', 'intellectualPropertyRights', 'restricted','otherRestrictions'])));
+                                                  ALTER TABLE xml2db.mapset_x_org_x_ind ADD CONSTRAINT mapset_x_org_x_ind_role_check CHECK ((role = ANY (ARRAY['author', 'custodian', 'distributor', 'originator', 'owner', 'pointOfContact', 'principalInvestigator', 'processor', 'publisher', 'resourceProvider', 'user'])));"
+
+# db to xml
+python $PROJECT_DIR/3_db2xml.py
+
+# xml to CKAN
+./4_xml2ckan.sh
