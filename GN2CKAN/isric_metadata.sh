@@ -172,16 +172,16 @@ psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset SET status
 # fix access_constraints
 psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset SET access_constraints = 'license' WHERE access_constraints = 'License'"
 
-# fix other_constraints
-psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset SET other_constraints = 'CC-BY-4.0' WHERE other_constraints = 'Attribution 4.0 International (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/'"
-psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset SET other_constraints = 'CC-BY-NC-3.0' WHERE other_constraints = 'Attribution-NonCommercial 3.0 International (CC BY-NC 3.0), https://creativecommons.org/licenses/by-nc/3.0/'"
-psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset SET other_constraints = 'CC-BY-NC-SA-4.0' WHERE other_constraints = 'Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0), https://creativecommons.org/licenses/by-nc-sa/4.0/'"
-psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset SET other_constraints = 'CC0-1.0' WHERE other_constraints = 'CC0 1.0 Universal (CC0 1.0) Public Domain Dedication, https://creativecommons.org/publicdomain/zero/1.0/deed.en'"
-psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset SET other_constraints = 'CC-BY-NC-SA-4.0' WHERE other_constraints = 'http://coral.ufsm.br/febr/politica-de-dados/'"
-psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset SET other_constraints = 'CC-BY-NC-4.0' WHERE other_constraints = 'Licenced per profile, as specified by data provider and indicated in the data'"
-psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset SET other_constraints = 'CC-BY-NC-4.0' WHERE other_constraints = 'Licenced per profile, as specified by data provider and indicated in the data (CC-BY or CC-BY-NC)'"
-psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset SET other_constraints = 'CC-BY-NC-4.0' WHERE other_constraints = 'Licenced per profile, as specified by data provider and indicated in the data set'"
-psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset SET other_constraints = 'CC-BY-4.0' WHERE other_constraints = 'U.S. Public Domain http://www.usa.gov/publicdomain/label/1.0/'"
+# other_constraints
+# psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset SET other_constraints = 'CC-BY-4.0' WHERE other_constraints = 'Attribution 4.0 International (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/'"
+# psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset SET other_constraints = 'CC-BY-NC-3.0' WHERE other_constraints = 'Attribution-NonCommercial 3.0 International (CC BY-NC 3.0), https://creativecommons.org/licenses/by-nc/3.0/'"
+# psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset SET other_constraints = 'CC-BY-NC-SA-4.0' WHERE other_constraints = 'Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0), https://creativecommons.org/licenses/by-nc-sa/4.0/'"
+# psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset SET other_constraints = 'CC0-1.0' WHERE other_constraints = 'CC0 1.0 Universal (CC0 1.0) Public Domain Dedication, https://creativecommons.org/publicdomain/zero/1.0/deed.en'"
+# psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset SET other_constraints = 'CC-BY-NC-SA-4.0' WHERE other_constraints = 'http://coral.ufsm.br/febr/politica-de-dados/'"
+# psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset SET other_constraints = 'CC-BY-NC-4.0' WHERE other_constraints = 'Licenced per profile, as specified by data provider and indicated in the data'"
+# psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset SET other_constraints = 'CC-BY-NC-4.0' WHERE other_constraints = 'Licenced per profile, as specified by data provider and indicated in the data (CC-BY or CC-BY-NC)'"
+# psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset SET other_constraints = 'CC-BY-NC-4.0' WHERE other_constraints = 'Licenced per profile, as specified by data provider and indicated in the data set'"
+# psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset SET other_constraints = 'CC-BY-4.0' WHERE other_constraints = 'U.S. Public Domain http://www.usa.gov/publicdomain/label/1.0/'"
 
 # fix distance_uom
 psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.layer SET distance_uom = 'arc-minutes' WHERE distance_uom = 'minutes'"
@@ -247,6 +247,18 @@ psql -h localhost -p 5432 -d iso19139 -U sis -c " ALTER TABLE xml2db.url ADD CON
                                                   ALTER TABLE xml2db.layer ADD CONSTRAINT layer_distance_uom_check CHECK ((distance_uom = ANY (ARRAY['m', 'km', 'deg','arc-minutes','arc-second'])));
                                                   ALTER TABLE xml2db.mapset ADD CONSTRAINT mapset_access_constraints_check CHECK ((access_constraints = ANY (ARRAY['copyright', 'patent', 'patentPending', 'trademark', 'license', 'intellectualPropertyRights', 'restricted','otherRestrictions'])));
                                                   ALTER TABLE xml2db.mapset_x_org_x_ind ADD CONSTRAINT mapset_x_org_x_ind_role_check CHECK ((role = ANY (ARRAY['author', 'custodian', 'distributor', 'originator', 'owner', 'pointOfContact', 'principalInvestigator', 'processor', 'publisher', 'resourceProvider', 'user'])));"
+
+# fix & < >
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.url SET url = REPLACE(url, '&', '&amp;') WHERE url ILIKE '%&%'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset SET md_browse_graphic = REPLACE(md_browse_graphic, '&', '&amp;') WHERE md_browse_graphic ILIKE '%&%'"
+
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset SET title = REPLACE(title, '&', '&amp;') WHERE title ILIKE '%&%'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset SET title = REPLACE(title, '<', '&lt;') WHERE title ILIKE '%<%'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset SET title = REPLACE(title, '>', '&gt;') WHERE title ILIKE '%>%'"
+
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset SET abstract = REPLACE(abstract, '&', '&amp;') WHERE abstract ILIKE '%&%'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset SET abstract = REPLACE(abstract, '<', '&lt;') WHERE abstract ILIKE '%<%'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset SET abstract = REPLACE(abstract, '>', '&gt;') WHERE abstract ILIKE '%>%'"
 
 # db to xml
 python $PROJECT_DIR/3_db2xml.py
