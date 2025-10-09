@@ -22,10 +22,10 @@ WHERE m.country_id = 'PH'
 -- title
 UPDATE spatial_metadata.mapset m SET title = t.title
     FROM (SELECT DISTINCT m.mapset_id, 
-                          'GSASmap - '||p.name||' ('||coalesce(c.en,'')||' - '||coalesce(p.unit_of_measure_id,'')||' - '|| 
+                          'GSASmap - '||p.name||' ('||coalesce(c.en,'')||' - '|| 
                           CASE
-                            WHEN l.distance = '0.0083333' THEN '1 km'
-                            WHEN l.distance = '0.0022457' THEN '250 m'
+                            WHEN l.distance = '1000.0' THEN '1 km'
+                            WHEN l.distance = '250.0' THEN '250 m'
                             ELSE l.distance
                           END||' - '||coalesce(EXTRACT( YEAR FROM m.creation_date)::text,'')||')' AS title
             FROM spatial_metadata.mapset m
@@ -36,10 +36,10 @@ UPDATE spatial_metadata.mapset m SET title = t.title
 
 UPDATE spatial_metadata.mapset m SET title = t.title
     FROM (SELECT DISTINCT m.mapset_id, 
-                          'GSNmap - '||p.name||' ('||coalesce(c.en,'')||' - '||coalesce(p.unit_of_measure_id,'')||' - '|| 
+                          'GSNmap - '||p.name||' ('||coalesce(c.en,'')||' - '|| 
                           CASE
-                            WHEN l.distance = '0.0083333' THEN '1 km'
-                            WHEN l.distance = '0.0022457' THEN '250 m'
+                            WHEN l.distance = '1000.0' THEN '1 km'
+                            WHEN l.distance = '250.0' THEN '250 m'
                             ELSE l.distance
                           END||' - '||coalesce(EXTRACT( YEAR FROM m.creation_date)::text,'')||')' AS title
             FROM spatial_metadata.mapset m
@@ -50,10 +50,10 @@ UPDATE spatial_metadata.mapset m SET title = t.title
 
 UPDATE spatial_metadata.mapset m SET title = t.title
     FROM (SELECT DISTINCT m.mapset_id, 
-                          p.name||' ('||coalesce(c.en,'')||' - '||coalesce(p.unit_of_measure_id,'')||' - '|| 
+                          p.name||' ('||coalesce(c.en,'')||' - '|| 
                           CASE
-                            WHEN l.distance = '0.0083333' THEN '1 km'
-                            WHEN l.distance = '0.0022457' THEN '250 m'
+                            WHEN l.distance = '1000.0' THEN '1 km'
+                            WHEN l.distance = '250.0' THEN '250 m'
                             ELSE l.distance
                           END||' - '||coalesce(EXTRACT( YEAR FROM m.creation_date)::text,'')||')' AS title
             FROM spatial_metadata.mapset m

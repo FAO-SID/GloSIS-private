@@ -28,7 +28,7 @@ WHERE m.country_id = 'TH'
 -- title
 UPDATE spatial_metadata.mapset m SET title = t.title
     FROM (SELECT DISTINCT m.mapset_id, 
-                          'GSASmap - '||p.name||' ('||coalesce(c.en,'')||' - '||coalesce(p.unit_of_measure_id,'')||' - '|| 
+                          'GSASmap - '||p.name||' ('||coalesce(c.en,'')||' - '|| 
                           CASE
                             WHEN l.distance = '0.0083333' THEN '1 km'
                             WHEN l.distance = '0.0022457' THEN '250 m'
@@ -42,7 +42,7 @@ UPDATE spatial_metadata.mapset m SET title = t.title
 
 UPDATE spatial_metadata.mapset m SET title = t.title
     FROM (SELECT DISTINCT m.mapset_id, 
-                          'GSNmap - '||p.name||' ('||coalesce(c.en,'')||' - '||coalesce(p.unit_of_measure_id,'')||' - '|| 
+                          'GSNmap - '||p.name||' ('||coalesce(c.en,'')||' - '|| 
                           CASE
                             WHEN l.distance = '0.0083333' THEN '1 km'
                             WHEN l.distance = '0.0022457' THEN '250 m'
@@ -56,7 +56,7 @@ UPDATE spatial_metadata.mapset m SET title = t.title
 
 UPDATE spatial_metadata.mapset m SET title = t.title
     FROM (SELECT DISTINCT m.mapset_id, 
-                          p.name||' ('||coalesce(c.en,'')||' - '||coalesce(p.unit_of_measure_id,'')||' - '|| 
+                          p.name||' ('||coalesce(c.en,'')||' - '|| 
                           CASE
                             WHEN l.distance = '0.0083333' THEN '1 km'
                             WHEN l.distance = '0.0022457' THEN '250 m'
