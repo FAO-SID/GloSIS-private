@@ -7,6 +7,10 @@ PROJECT_DIR="/home/carva014/Work/Code/FAO/GloSIS-private/GN2CKAN"
 input_dir=/home/carva014/Downloads/FAO/Metadata/isric
 output_dir=/home/carva014/Downloads/FAO/Metadata/input
 
+# conda env
+eval "$(conda shell.bash hook)"
+conda activate db
+
 mkdir -p "$output_dir"
 
 find "$input_dir" -type f -path "*/metadata/metadata.xml" | while read -r f; do
@@ -182,6 +186,62 @@ psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset SET other_
 # fix distance_uom
 psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.layer SET distance_uom = 'arc-minutes' WHERE distance_uom = 'minutes'"
 
+# fix language_code
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset SET language_code = 'eng'"
+
+# fix metadata_standard_name
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset SET metadata_standard_name = 'ISO 19115:2003/19139'"
+
+# fix md_browse_graphic
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset m SET md_browse_graphic = u.url FROM xml2db.url u WHERE u.mapset_id = m.mapset_id AND u.url_name = '#thumbnail#'"
+
+# fix dates
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset m SET creation_date = publication_date WHERE creation_date IS NULL"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset m SET revision_date = publication_date WHERE revision_date IS NULL"
+
+# fix keyword_theme
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset SET keyword_theme = array_replace(keyword_theme, 'electrical conductivy', 'electrical conductivity')"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset SET keyword_theme = array_replace(keyword_theme, 'salinisation', 'salinity')"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset SET keyword_theme = array_replace(keyword_theme, 'soil carbon', 'carbon')"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset SET keyword_theme = array_replace(keyword_theme, 'spectroscopy data', 'spectral')"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset SET keyword_theme = array_replace(keyword_theme, 'total nitrogen', 'nitrogen')"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset SET keyword_theme = array_replace(keyword_theme, 'Volumetric Water Content', 'volumetric water content')"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset SET keyword_theme = array_replace(keyword_theme, 'calcium carbonate', 'calcium')"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset SET keyword_theme = array_replace(keyword_theme, 'physical deterioration', 'land degradation')"
+# removed repeated
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset SET keyword_theme = (SELECT array_agg(DISTINCT unnested_value) FROM unnest(keyword_theme) AS unnested_value)"
+# remove keywords
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset SET keyword_theme = (SELECT array_agg(x) FROM unnest(keyword_theme) AS x WHERE x != 'chemical deterioration')"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset SET keyword_theme = (SELECT array_agg(x) FROM unnest(keyword_theme) AS x WHERE x != 'physical deterioration')"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset SET keyword_theme = (SELECT array_agg(x) FROM unnest(keyword_theme) AS x WHERE x != 'degradation status')"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset SET keyword_theme = (SELECT array_agg(x) FROM unnest(keyword_theme) AS x WHERE x != 'wosis')"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset SET keyword_theme = (SELECT array_agg(x) FROM unnest(keyword_theme) AS x WHERE x != 'soilgrids')"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset SET keyword_theme = (SELECT array_agg(x) FROM unnest(keyword_theme) AS x WHERE x != 'site locations')"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset SET keyword_theme = (SELECT array_agg(x) FROM unnest(keyword_theme) AS x WHERE x != 'thermal')"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset SET keyword_theme = (SELECT array_agg(x) FROM unnest(keyword_theme) AS x WHERE x != 'landsat')"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset SET keyword_theme = (SELECT array_agg(x) FROM unnest(keyword_theme) AS x WHERE x != 'global map')"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset SET keyword_theme = (SELECT array_agg(x) FROM unnest(keyword_theme) AS x WHERE x != 'colour')"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset SET keyword_theme = (SELECT array_agg(x) FROM unnest(keyword_theme) AS x WHERE x != 'organic')"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset SET keyword_theme = (SELECT array_agg(x) FROM unnest(keyword_theme) AS x WHERE x != 'root zone')"
+
+# fix reference_system_identifier_code
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.layer SET reference_system_identifier_code = '3035' WHERE reference_system_identifier_code = 'urn:ogc:def:crs:EPSG:3035'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.layer SET reference_system_identifier_code = '4326' WHERE reference_system_identifier_code = 'urn:ogc:def:crs:EPSG:4326'"
+
+# fix distribution_format
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.layer SET distribution_format = 'GeoTiff' WHERE distribution_format = 'image/tiff; application=geotiff+cog'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.layer SET distribution_format = 'GeoTiff' WHERE distribution_format = 'TIF'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.layer SET distribution_format = 'GeoTiff' WHERE distribution_format = 'GTiff'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.layer SET distribution_format = 'zip' WHERE distribution_format = 'Niels Batjes'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.layer SET distribution_format = 'zip' WHERE distribution_format = 'Niels H. Batjes'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.layer SET distribution_format = 'zip' WHERE distribution_format = 'TSV and Geopackage'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.layer SET distribution_format = 'GeoTiff' WHERE mapset_id = '5017fe43-061e-44de-bd8b-70d8d75b8f41'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.layer SET distribution_format = 'GeoTiff' WHERE mapset_id = 'b3d7c844-cbee-4b0f-8431-3a9373f5a59a'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.layer SET distribution_format = 'GeoTiff' WHERE mapset_id = '3cc719a6-cbf5-4bc8-94c3-cd7d2b3db3c3'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.layer SET distribution_format = 'zip' WHERE mapset_id = '71203238-9817-4a4e-a626-6e89a47d501a'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.layer SET distribution_format = 'zip' WHERE mapset_id = '1027fe43-061e-4cde-bd8b-7bd8d7338f4a'"
+
+# enable constrainsts
 psql -h localhost -p 5432 -d iso19139 -U sis -c " ALTER TABLE xml2db.url ADD CONSTRAINT url_protocol_check CHECK ((protocol = ANY (ARRAY['OGC:WFS','OGC:WCS','OGC:WMS','OGC:WMTS','WWW:LINK-1.0-http--link', 'WWW:LINK-1.0-http--related', 'WWW:DOWNLOAD-1.0-http--download', 'OGC:WMS-1.1.1-http-get-map'])));
                                                   ALTER TABLE xml2db.mapset ADD CONSTRAINT mapset_status_check CHECK ((status = ANY (ARRAY['completed', 'historicalArchive', 'obsolete', 'onGoing', 'planned', 'required', 'underDevelopment'])));
                                                   ALTER TABLE xml2db.layer ADD CONSTRAINT layer_distance_uom_check CHECK ((distance_uom = ANY (ARRAY['m', 'km', 'deg','arc-minutes','arc-second'])));
@@ -192,4 +252,4 @@ psql -h localhost -p 5432 -d iso19139 -U sis -c " ALTER TABLE xml2db.url ADD CON
 python $PROJECT_DIR/3_db2xml.py
 
 # xml to CKAN
-./4_xml2ckan.sh
+$PROJECT_DIR/4_xml2ckan.sh
