@@ -549,7 +549,7 @@ cur = conn.cursor()
 
 # run function
 template = '/home/carva014/Work/Code/FAO/GloSIS-private/GN2CKAN/template.xml'
-output = '/home/carva014/Downloads/FAO/Metadata/output'
+output = '/home/carva014/Downloads/FAO/Metadata/ISRIC_output'
 group_id = 'isric'
 bake_xml(group_id, template, output)
 

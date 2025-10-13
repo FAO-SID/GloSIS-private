@@ -208,6 +208,10 @@ psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset SET keywor
 psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset SET keyword_theme = array_replace(keyword_theme, 'Volumetric Water Content', 'volumetric water content')"
 psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset SET keyword_theme = array_replace(keyword_theme, 'calcium carbonate', 'calcium')"
 psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset SET keyword_theme = array_replace(keyword_theme, 'physical deterioration', 'land degradation')"
+
+# add keyword
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset SET keyword_theme = array_append(keyword_theme, 'isric')"
+
 # removed repeated
 psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset SET keyword_theme = (SELECT array_agg(DISTINCT unnested_value) FROM unnest(keyword_theme) AS unnested_value)"
 # remove keywords
@@ -259,6 +263,16 @@ psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset SET title 
 psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset SET abstract = REPLACE(abstract, '&', '&amp;') WHERE abstract ILIKE '%&%'"
 psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset SET abstract = REPLACE(abstract, '<', '&lt;') WHERE abstract ILIKE '%<%'"
 psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset SET abstract = REPLACE(abstract, '>', '&gt;') WHERE abstract ILIKE '%>%'"
+
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset SET lineage_statement = REPLACE(lineage_statement, '&', '&amp;') WHERE lineage_statement ILIKE '%&%'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset SET lineage_statement = REPLACE(lineage_statement, '<', '&lt;') WHERE lineage_statement ILIKE '%<%'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset SET lineage_statement = REPLACE(lineage_statement, '>', '&gt;') WHERE lineage_statement ILIKE '%>%'"
+
+# lineage
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset SET lineage_statement = '- 2021 March (v1.2): Minor changes were applied for SAN class, i.e. &gt;70% and &lt;8% clay in top 0-30 cm; rules were applied to 184 map units flagged as DIFF in column [FLAGsan], see also column [SANDYclass] in the MS Acess file. This change applied to 184 out of a total of 16108 map units; further details are provided in Report 2009/02.
+- Batjes NH 2009. IPCC default soil classes derived from the Harmonized World Soil Data Base, ver. 1.0. Report 2009/02, Carbon Benefits Project and ISRIC - World Soil Information, Wageningen, with dataset. https://www.isric.org/sites/default/files/isric_report_2009_02.pdf'
+WHERE mapset_id = '41cb0ae9-1604-4807-96e6-0dc8c94c5d22'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset SET lineage_statement = 'Data quality information not available' WHERE lineage_statement IS NULL"
 
 # db to xml
 python $PROJECT_DIR/3_db2xml.py

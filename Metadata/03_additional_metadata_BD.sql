@@ -111,7 +111,7 @@ UPDATE spatial_metadata.mapset m SET keyword_theme = p.keyword_theme FROM spatia
 
 
 -- licence
-UPDATE spatial_metadata.mapset SET other_constraints = 'XXXXXXXXXXXXXXXXXXXXX' WHERE country_id = 'BD';
+UPDATE spatial_metadata.mapset SET other_constraints = 'CC-BY-NC-SA-4.0' WHERE country_id = 'BD';
 
 
 -- time period
@@ -204,7 +204,7 @@ INSERT INTO spatial_metadata.url (mapset_id, protocol, url, url_name)
 
 -- -- categorical class
 INSERT INTO spatial_metadata."class" (mapset_id, value, code, "label", color, opacity, publish) VALUES
-('BD-GSNM-PEAT-2024', 0, '0', '0 - No peat', '#000000', 0, 't'),
+('BD-GSNM-PEAT-2024', 0, '0', '0 - No peat', '#f5deb3', 0, 't'),
 ('BD-GSNM-PEAT-2024', 1, '1', '1 - Peat', '#800080', 1, 't')
  ON CONFLICT (mapset_id, value) DO NOTHING;
 
