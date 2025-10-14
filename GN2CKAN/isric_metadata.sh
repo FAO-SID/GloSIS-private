@@ -134,6 +134,24 @@ psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.individual SET em
 psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.individual SET email = 'r.nijbroek@cgiar.org' WHERE individual_id = 'Ravic Nijbroek'"
 psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.individual SET email = 'data@isric.org' WHERE individual_id IN ('Jan R.M. Huting','Peter N Macharia','J.A. Dijkshoorn','W .G. Sombroek','R.T.A. Hakkeling','Godert van Lynden','L.R. Oldeman','Piet Tempel','Koos Dijkshoorn')"
 
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset_x_org_x_ind SET tag = 'pointOfContact' WHERE mapset_id = 'b3d7c844-cbee-4b0f-8431-3a9373f5a59a'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.mapset_x_org_x_ind SET tag = 'pointOfContact' WHERE mapset_id = '3cc719a6-cbf5-4bc8-94c3-cd7d2b3db3c3'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "DELETE FROM xml2db.mapset_x_org_x_ind 
+                                                  WHERE tag = 'contact' 
+                                                    AND mapset_id IN ('c59d0162-a258-4210-af80-777d7929c512',
+                                                                      'c59d0162-a258-4210-af80-777d7929c512',
+                                                                      '5017fe43-061e-44de-bd8b-70d8d75b8f41',
+                                                                      '1027fe43-061e-4cde-bd8b-7bd8d7338f4a')"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "DELETE FROM xml2db.mapset_x_org_x_ind 
+                                                  WHERE role = 'pointOfContact' 
+                                                    AND mapset_id IN ('1027fe43-061e-4cde-bd8b-7bd8d7338f4a')"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "DELETE FROM xml2db.mapset_x_org_x_ind 
+                                                  WHERE position = 'Communication' 
+                                                    AND mapset_id IN ('40aa2d28-19ae-11e9-b588-a0481ca9e724')"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "DELETE FROM xml2db.mapset_x_org_x_ind WHERE individual_id = 'Data infodesk'"
+psql -h localhost -p 5432 -d iso19139 -U sis -c "INSERT INTO xml2db.mapset_x_org_x_ind
+                                                  SELECT mapset_id, 'ISRIC - World Soil Information', 'Data infodesk', 'Communication', 'contact', 'pointOfContact' FROM xml2db.mapset"
+
 # fix url protocol
 psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.url SET protocol = 'WWW:LINK-1.0-http--link' WHERE protocol = 'DOI'"
 psql -h localhost -p 5432 -d iso19139 -U sis -c "UPDATE xml2db.url SET protocol = 'OGC:WMS' WHERE protocol = 'OGC:WMS-1.3.0-http-get-capabilities'"

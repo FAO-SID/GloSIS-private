@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # variables
-COUNTRY=MN
+COUNTRY=BT
 
 PROJECT_DIR="/home/carva014/Work/Code/FAO"
 DATA_DIR="/home/carva014/Downloads/FAO/AFACI/$COUNTRY"

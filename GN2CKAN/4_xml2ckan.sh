@@ -6,10 +6,10 @@
 CKAN_URL="https://data.apps.fao.org/catalog/api/action/jsonschema_importer"
 API_KEY_CKAN=$(cat /home/carva014/Documents/Arquivo/Trabalho/FAO/API_KEY_CKAN.txt)
 OWNER_ORG="glosis"
-XML_FOLDER="/home/carva014/Downloads/FAO/Metadata/retry"
+XML_FOLDER="/home/carva014/Downloads/FAO/Metadata/ISRIC_output"
 LICENSE_ID="CC-BY-NC-SA-4.0"
 DATE=`date +%Y-%m-%d-%H-%M`
-LOG_FILE="log_${DATE}.txt"
+LOG_FILE="/home/carva014/Work/Code/FAO/GloSIS-private/GN2CKAN/log_${DATE}.txt"
 SUCCESS_COUNT=0
 UPDATE_COUNT=0
 ERROR_COUNT=0

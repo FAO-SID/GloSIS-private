@@ -28,7 +28,8 @@ create_metadata() {
                     FROM spatial_metadata.layer
                     GROUP BY mapset_id, dimension_depth, dimension_stats
                   ) l ON l.mapset_id = m.mapset_id
-        WHERE m.country_id = '$COUNTRY'
+        --WHERE m.country_id = '$COUNTRY'
+        WHERE m.mapset_id = 'BT-GSNM-NTOT-2024'
         ORDER BY m.mapset_id"
 
     psql -h "$DB_HOST" -p "$DB_PORT" -d "$DB_NAME" -U "$DB_USER" -t -A -F"|" -c "$SQL" | \

@@ -77,7 +77,8 @@ update_mapset() {
     LEFT JOIN spatial_metadata.layer l ON l.mapset_id = m.mapset_id
     LEFT JOIN spatial_metadata.project pj ON pj.project_id = m.project_id AND pj.country_id = m.country_id
     LEFT JOIN spatial_metadata.country c ON c.country_id = pj.country_id
-    WHERE m.country_id = '$COUNTRY'
+    --WHERE m.country_id = '$COUNTRY'
+    WHERE m.mapset_id = 'BT-GSNM-NTOT-2024'
       AND l.dimension_depth IS NOT NULL
       AND l.dimension_stats IS NOT NULL
     ORDER BY m.mapset_id"

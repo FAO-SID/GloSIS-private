@@ -1,0 +1,19 @@
+Import started at 2025-10-14T11:45:31 CEST
+===========================================
+Processing: 10aa9a99-1433-11e9-a8fa-a0481ca9e724.xml
+Uploaded to: http://tmpfiles.org/dl/4113478/10aa9a99-1433-11e9-a8fa-a0481ca9e724.xml
+⟳ Dataset exists, updating...
+✗ Error updating: User eloi.ribeiro@fao.org not authorized to read package d04158f3-fcbc-4bfc-8f96-32e3c1770627
+---
+Processing: 2f99e11b-183c-11e9-aba8-a0481ca9e724.xml
+Uploaded to: http://tmpfiles.org/dl/4113482/2f99e11b-183c-11e9-aba8-a0481ca9e724.xml
+⟳ Dataset exists, updating...
+✗ Error updating: User eloi.ribeiro@fao.org not authorized to read package b6a5580a-994a-4640-861d-eaa15e083431
+---
+===========================================
+Import completed at 2025-10-14T11:45:41 CEST
+Summary:
+  New datasets created: 0
+  Existing datasets updated: 0
+  Errors: 2
+  Total processed: 2
